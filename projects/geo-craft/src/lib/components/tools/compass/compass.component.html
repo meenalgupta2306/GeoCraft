@@ -1,0 +1,36 @@
+<svg #compassSvg width="500" height="500" viewBox="0 0 500 500" style="border: 1px solid #ccc;">
+  <path #drawingPath d="" stroke="yellow" stroke-width="2" fill="none"></path>
+
+  <g #compassGroup transform="translate(250, 250)">
+    <!-- Needle Leg -->
+    <g id="needleLeg" #needleLeg>
+      <path d="M75,-170 L30,-45" stroke="grey" stroke-width="10" fill="none" />
+      <polygon points="28,-47 32,-45 22,-20" fill="gray" stroke="black" stroke-width="1" />
+      <circle
+        cx="22"   
+        cy="-20" 
+        r="4"
+        fill="black"
+        stroke="white"
+        stroke-width="1"
+        />
+    </g>
+
+    <!-- Pencil Leg -->
+    <g id="pencil" #pencilElement transform="">
+      <path d="M80,-180 L110,-110" stroke="grey" stroke-width="10" fill="none" />
+      <rect x="110" y="-107" width="10" height="60" fill="#e1ad01" stroke="black" stroke-width="2" />
+      <polygon points="110,-47 120,-47 115,-20" fill="#ffe4b5" stroke="black" stroke-width="1" />
+      <rect x="107" y="-112" width="16" height="10" fill="gray" stroke="black" stroke-width="1" />
+    </g>
+
+    <!-- Pivot Joint -->
+    <g id="pivotJoint" #pivotJoint>
+      <circle cx="80" cy="-180" r="15" fill="orange" stroke="black" stroke-width="3" />
+      <circle cx="80" cy="-180" r="8" fill="#333" stroke="black" stroke-width="1" />
+      <line x1="75" y1="-185" x2="85" y2="-175" stroke="black" stroke-width="2" />
+      <line x1="85" y1="-185" x2="75" y2="-175" stroke="black" stroke-width="2" />
+    </g>
+  </g>
+</svg>
+
