@@ -1,0 +1,15 @@
+.sidebar {
+  height: 100%;
+    width: 20vw;
+    background-color: #dbdbdb;
+    border-right: 1px solid #000000;
+    padding: 1rem;
+}
+
+ .sidebar-open {
+    width: 0; /* Hide sidebar when closed */
+  }
+
+.canvas-area{
+    width: 100%
+}

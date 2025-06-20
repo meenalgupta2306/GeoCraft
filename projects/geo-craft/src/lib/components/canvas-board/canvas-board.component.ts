@@ -4,22 +4,16 @@ import { InteractionEventsService } from '../../services/interaction-events.serv
 @Component({
   selector: 'lib-canvas-board',
   templateUrl: './canvas-board.component.html',
-  styleUrls: ['./canvas-board.component.scss']
+  styleUrls: ['./canvas-board.component.scss'],
 })
 export class CanvasBoardComponent implements OnInit {
-   activeToolComponent: Type<any> | null = null;
+  activeToolComponent: Type<any> | null = null;
 
-  constructor(
-    private interactionEventsService: InteractionEventsService
-  ) {
-    
-   }
-   
+  constructor(private interactionEventsService: InteractionEventsService) {}
 
   ngOnInit(): void {
-     this.interactionEventsService.activeTool$.subscribe(component => {
+    this.interactionEventsService.activeTool$.subscribe((component) => {
       this.activeToolComponent = component;
     });
   }
-
 }
