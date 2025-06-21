@@ -1,15 +1,27 @@
 .sidebar {
   height: 100%;
-    width: 20vw;
-    background-color: #dbdbdb;
-    border-right: 1px solid #000000;
-    padding: 1rem;
+  width: 20vw;
+  background-color: #dbdbdb;
+  border-right: 1px solid #000000;
+  padding: 1rem;
 }
 
- .sidebar-open {
-    width: 0; /* Hide sidebar when closed */
-  }
-
-.canvas-area{
-    width: 100%
+.sidebar-open {
+  width: 0; /* Hide sidebar when closed */
 }
+
+.canvas-area {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  flex: 1 1 auto;
+}
+
+.toggle-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+}
+
+

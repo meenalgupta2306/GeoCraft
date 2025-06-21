@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PointComponent } from './point.component';
+import { GeoCraftViewComponent } from './geo-craft-view.component';
 
-describe('PointComponent', () => {
-  let component: PointComponent;
-  let fixture: ComponentFixture<PointComponent>;
+describe('GeoCraftViewComponent', () => {
+  let component: GeoCraftViewComponent;
+  let fixture: ComponentFixture<GeoCraftViewComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PointComponent ]
+      declarations: [ GeoCraftViewComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(PointComponent);
+    fixture = TestBed.createComponent(GeoCraftViewComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

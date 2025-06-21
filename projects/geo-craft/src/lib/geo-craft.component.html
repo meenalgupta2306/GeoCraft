@@ -1,15 +1,22 @@
-<div class="main-container">
+<!-- <div class="main-container">
   <div class="main-content d-flex h-100">
-    <div
-      *ngIf="openToolBar"
-      class="sidebar"
-    >
+    <div *ngIf="openToolBar" class="sidebar">
       <lib-tool-bar></lib-tool-bar>
     </div>
 
     <div class="canvas-area flex-grow-1">
-        <button (click)="toggle()" style="display: block;">open</button>
-      <lib-canvas-board></lib-canvas-board>
+      <button (click)="toggle()" class="toggle-btn">open</button>
+      <lib-geo-craft-view></lib-geo-craft-view>
     </div>
+  </div>
+</div> -->
+<div class="d-flex h-100">
+  <div *ngIf="openToolBar" class="sidebar">
+    <lib-tool-bar></lib-tool-bar>
+  </div>
+
+  <div class="canvas-area flex-grow-1">
+    <button (click)="toggle()" class="toggle-btn">open</button>
+    <lib-geo-craft-view></lib-geo-craft-view>
   </div>
 </div>

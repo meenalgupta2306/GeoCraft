@@ -1,0 +1,23 @@
+<button
+  *ngFor="let tool of tools"
+  (click)="selectTool(tool.name)"
+  class="tool-buttons"
+>
+  {{ tool.label }}
+</button>
+<!-- In your toolbar or debug panel -->
+<label>
+  <input type="checkbox" [(ngModel)]="viewState.snapToGrid">
+  Snap to Grid
+</label>
+
+<label>
+  Step:
+  <input type="number" [(ngModel)]="viewState.gridStep" min="0.1" step="0.1">
+</label>
+<label>
+  <input type="checkbox" [(ngModel)]="viewState.showGrid">
+  Show Grid
+</label>
+
+

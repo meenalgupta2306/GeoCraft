@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
+import { ViewStateService } from './view/services/view-state.service';
 
 @Component({
   selector: 'lib-geo-craft',
@@ -6,12 +7,20 @@ import { Component, OnInit } from '@angular/core';
    styleUrls: ['./geo-craft.component.scss'],
 })
 export class GeoCraftComponent implements OnInit {
+  config = {
+    showGrid: true,
+    snapToGrid: true,
+    gridStep: 1
+  };
 
   openToolBar: boolean = true;
 
-  constructor() { }
+  constructor(
+    private viewState: ViewStateService
+  ) { }
 
   ngOnInit(): void {
+    this.viewState.setCanvasConfig(this.config);
   }
 
   toggle(){
