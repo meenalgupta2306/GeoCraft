@@ -23,15 +23,10 @@ export class GeoCraftViewComponent implements AfterViewInit {
 
   private ctx!: CanvasRenderingContext2D;
 
-  xZero = 400;
-  yZero = 300;
-  xScale = 100;
-  yScale = 100;
-
   constructor(
-    private toolManager: ToolManagerService,
+    public toolManager: ToolManagerService,
     private renderer: CanvasRendererService,
-    private viewState: ViewStateService,
+    public viewState: ViewStateService,
     private eventLog: EventLogService,
     private construction: ConstructionService
   ) {}
@@ -39,7 +34,10 @@ export class GeoCraftViewComponent implements AfterViewInit {
   ngAfterViewInit() {
     this.ctx = this.canvasRef.nativeElement.getContext('2d')!;
     this.resizeCanvas();
-    this.render();
+    setTimeout(()=>{
+      this.render();
+    },1000)
+    
   }
   ngOnInit(): void {
     const canvas = this.canvasRef.nativeElement;
@@ -49,6 +47,14 @@ export class GeoCraftViewComponent implements AfterViewInit {
     // Resize canvas to match parent size
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
+    
+    // Update coordinate system with initial values
+    this.viewState.updateCoordinateSystem(
+      canvas.width / 2,
+      canvas.height / 2,
+      canvas.width,
+      canvas.height
+    );
   }
 
   @HostListener('window:resize')
@@ -58,24 +64,33 @@ export class GeoCraftViewComponent implements AfterViewInit {
     const rect = canvas.getBoundingClientRect();
     canvas.width = rect.width;
     canvas.height = rect.height;
+        
+    // 2️⃣ Update coordinate system and notify all components
+    this.viewState.updateCoordinateSystem(
+      canvas.width / 2,
+      canvas.height / 2,
+      canvas.width,
+      canvas.height
+    );
 
-    // 2️⃣ Re-render everything at new size
+    // 3️⃣ Re-render everything at new size
     this.render();
   }
 
   toScreenX(xRW: number): number {
-    return Math.round(this.xZero + xRW * this.xScale);
+    return this.viewState.toScreenX(xRW);
   }
+
   toScreenY(yRW: number): number {
-    return Math.round(this.yZero - yRW * this.yScale);
+    return this.viewState.toScreenY(yRW);
   }
 
   toWorldX(screenX: number): number {
-    return (screenX - this.xZero) / this.xScale;
+    return this.viewState.toWorldX(screenX);
   }
 
   toWorldY(screenY: number): number {
-    return (this.yZero - screenY) / this.yScale;
+    return this.viewState.toWorldY(screenY);
   }
 
   @HostListener('click', ['$event'])
@@ -95,6 +110,7 @@ export class GeoCraftViewComponent implements AfterViewInit {
     const wx = this.toWorldX(sx);
     const wy = this.toWorldY(sy);
 
+    // alert(`${sx} -> ${wx}, ${sy} -> ${wy}`)
     this.toolManager.handleClick(this, wx, wy);
     this.render();
   }
@@ -111,6 +127,7 @@ export class GeoCraftViewComponent implements AfterViewInit {
     this.viewState.getDrawables().forEach((d) => {
       d.render(this.renderer, this);
     });
+    
      console.log('Event Log:', this.eventLog.getEvents());
     console.log('Construction Elements:', this.construction.getGeoElements());
   }
@@ -163,6 +180,5 @@ drawGrid(renderer: CanvasRendererService) {
     renderer.drawText(y.toString(), this.toScreenX(0) + 2, sy - 2);
   }
 }
-
 
 }

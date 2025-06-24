@@ -10,6 +10,8 @@ export class ToolManagerService {
 
   private activeTool!: Tool;
 
+  public activeToolRenderer: any;
+
   constructor(
     private pointTool: PointToolService
   ) { }
@@ -20,7 +22,9 @@ export class ToolManagerService {
       case 'point':
         this.activeTool = this.pointTool;
         break;
-      // Add more tools here later
+      case 'compass':
+        this.activeToolRenderer = toolName;
+        break;
       default:
         console.warn(`Unknown tool: ${toolName}`);
         this.activeTool = this.pointTool; // fallback

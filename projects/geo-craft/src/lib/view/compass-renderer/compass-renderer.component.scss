@@ -1,0 +1,18 @@
+:host {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  // pointer-events: none; // so clicks go through to the canvas
+}
+
+svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+g {
+  /* only this catches pointer events */
+  // pointer-events: all;
+}

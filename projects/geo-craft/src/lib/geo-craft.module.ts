@@ -4,13 +4,15 @@ import { CommonModule } from '@angular/common';
 import { GeoCraftViewComponent } from './view/geo-craft-view/geo-craft-view.component'; 
 import { ToolBarComponent } from './view/tool-bar/tool-bar.component';
 import { FormsModule } from '@angular/forms';
+import { CompassRendererComponent } from './view/compass-renderer/compass-renderer.component';
 
 
 @NgModule({
   declarations: [
     GeoCraftComponent,
     ToolBarComponent,
-    GeoCraftViewComponent
+    GeoCraftViewComponent,
+    CompassRendererComponent
   ],
   imports: [
     CommonModule,

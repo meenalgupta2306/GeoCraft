@@ -1,3 +1,9 @@
 <!-- <svg #svgContainer width="100%" height="100%" (click)="onSvgClick($event)"></svg> -->
+<div class="geo-craft-container">
+  <canvas #canvasContainer class="canvas-area"></canvas>
 
-<canvas #canvasContainer class="canvas-area"></canvas>
+  <!-- Compass on top -->
+  <lib-compass-renderer class="compass" *ngIf="toolManager.activeToolRenderer === 'compass'"></lib-compass-renderer>
+</div>
+
+
