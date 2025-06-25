@@ -92,26 +92,40 @@ export class GeoCraftViewComponent implements AfterViewInit {
   toWorldY(screenY: number): number {
     return this.viewState.toWorldY(screenY);
   }
-
-  @HostListener('click', ['$event'])
-  onCanvasClick(event: MouseEvent) {
+  getWorldCoordinates(event: MouseEvent | PointerEvent): { wx: number, wy: number } {
     const canvas = this.canvasRef.nativeElement;
     const rect = canvas.getBoundingClientRect();
 
-    // 3️⃣ Compute scaling factors
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
-    // 4️⃣ Map screen to canvas pixel coordinates
     const sx = (event.clientX - rect.left) * scaleX;
     const sy = (event.clientY - rect.top) * scaleY;
 
-    // 5️⃣ Convert to world if needed
     const wx = this.toWorldX(sx);
     const wy = this.toWorldY(sy);
 
+    return { wx, wy };
+  }
+
+
+  @HostListener('click', ['$event'])
+  onCanvasClick(event: MouseEvent) {
+    const { wx, wy } = this.getWorldCoordinates(event);
+
     // alert(`${sx} -> ${wx}, ${sy} -> ${wy}`)
     this.toolManager.handleClick(this, wx, wy);
+    this.render();
+  }
+
+  @HostListener('pointermove', ['$event'])
+  onPointerMove(event: PointerEvent) {
+    const { wx, wy } = this.getWorldCoordinates(event);
+
+    // 🔁 Send move to the current tool
+    this.toolManager.handleMove?.(this, wx, wy);
+
+    // 🔁 Re-render to show preview
     this.render();
   }
 
@@ -127,6 +141,8 @@ export class GeoCraftViewComponent implements AfterViewInit {
     this.viewState.getDrawables().forEach((d) => {
       d.render(this.renderer, this);
     });
+    // Draw preview (temporary) items
+    this.viewState.getPreviewDrawables().forEach(d => d.render(this.renderer, this));
     
      console.log('Event Log:', this.eventLog.getEvents());
     console.log('Construction Elements:', this.construction.getGeoElements());

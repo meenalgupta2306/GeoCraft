@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 
 import {Tool} from './tools/tools-interface';
 import { PointToolService } from './tools/point-tool.service';
+import { SegmentToolService } from './tools/segment-tool.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,8 @@ export class ToolManagerService {
   public activeToolRenderer: any;
 
   constructor(
-    private pointTool: PointToolService
+    private pointTool: PointToolService,
+    private segmentTool: SegmentToolService
   ) { }
 
   setActiveTool(toolName: string) {
@@ -21,6 +23,9 @@ export class ToolManagerService {
     switch (toolName) {
       case 'point':
         this.activeTool = this.pointTool;
+        break;
+      case 'segment':
+        this.activeTool = this.segmentTool;
         break;
       case 'compass':
         this.activeToolRenderer = toolName;
@@ -34,6 +39,12 @@ export class ToolManagerService {
   handleClick(view: any, x: number, y: number) {
     if (this.activeTool) {
       this.activeTool.handleClick(view, x, y);
+    }
+  }
+
+  handleMove(view: any, x: number, y: number){
+    if(this.activeTool){
+      this.activeTool.handleMove(view, x, y);
     }
   }
 

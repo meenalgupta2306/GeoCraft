@@ -5,6 +5,7 @@ import { DrawPoint } from '../../drawable/draw-point';
 import { ConstructionService } from '../construction.service';
 import { EventLogService } from '../event-log.service';
 import { ViewStateService } from '../../view/services/view-state.service';
+import { GeoCraftViewComponent } from '../../view/geo-craft-view/geo-craft-view.component';
 
 @Injectable({
   providedIn: 'root'
@@ -44,6 +45,10 @@ export class PointToolService implements Tool {
 
     const drawable = new DrawPoint(point);
     this.viewState.addDrawable(drawable);
+  }
+
+  handleMove(view: GeoCraftViewComponent, wx: number, wy: number): void {
+      
   }
 
 }

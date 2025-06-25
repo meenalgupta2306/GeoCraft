@@ -10,7 +10,7 @@ export class ToolBarComponent implements OnInit {
 
   tools = [
     {id: 1, name: 'point', 'label': 'Point', icon: ''},
-    {id: 2, name: 'line', 'label': 'Line', icon: ''},
+    {id: 2, name: 'segment', 'label': 'Segment', icon: ''},
     {id: 3, name: 'compass', 'label': 'Compass', icon: ''},
   ]
 

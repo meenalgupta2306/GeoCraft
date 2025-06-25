@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
-
+import { LineSegment } from '../../model/segment';
+import { Point } from '../../model/point';
 @Injectable({
   providedIn: 'root',
 })
@@ -29,10 +30,12 @@ export class ViewStateService {
 
   // ✅ Drawables collection
   private drawables: any[] = [];
+  private previewDrawables: any[] = [];
+
 
   constructor() {}
 
-  // ✅ API to manage drawables
+
   addDrawable(drawable: any) {
     this.drawables.push(drawable);
   }
@@ -87,4 +90,16 @@ export class ViewStateService {
   toWorldY(screenY: number): number {
     return (this.screenOriginY - screenY) / this.screenScaleY;
   }
+
+  setPreviewDrawables(items: any[]): void {
+  this.previewDrawables = items;
 }
+
+  clearPreviewDrawables(): void {
+    this.previewDrawables = [];
+  }
+
+  getPreviewDrawables(): any[] {
+    return this.previewDrawables;
+  }
+  }
