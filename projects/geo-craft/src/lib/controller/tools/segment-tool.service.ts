@@ -51,6 +51,13 @@ handleMove(view: GeoCraftViewComponent, x: number, y: number): void {
   }
 }
 
+handlePointerUp(){
+
+}
+handlePointerDown(){
+  
+}
+
 
 cancel(): void {
   this.startPoint = null;

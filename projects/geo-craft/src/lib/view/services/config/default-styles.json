@@ -1,0 +1,14 @@
+{
+  "config": {
+    "point":{
+        "glow": {
+            "fillStyle": "rgba(123, 194, 218, 0.4)",
+            "strokeStyle": "rgba(69, 24, 184, 0.48)"
+        },
+        "fillStyle": "rgba(69, 24, 184, 0.48)"
+        
+    },
+   
+    "lineWidth": 2
+  }
+}

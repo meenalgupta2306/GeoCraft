@@ -12,6 +12,8 @@
         "dist/geo-craft"
       ]
     },
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,

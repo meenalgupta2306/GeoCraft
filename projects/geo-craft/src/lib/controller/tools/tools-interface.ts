@@ -3,4 +3,6 @@ import { GeoCraftViewComponent } from "../../view/geo-craft-view/geo-craft-view.
 export interface Tool {
     handleClick(view: GeoCraftViewComponent, wx: number, wy: number): void;
     handleMove(view: GeoCraftViewComponent, wx: number, wy: number): void;
+    handlePointerDown(view: GeoCraftViewComponent, wx: number, wy: number): void;
+    handlePointerUp(view: GeoCraftViewComponent, wx: number, wy: number): void;
 }

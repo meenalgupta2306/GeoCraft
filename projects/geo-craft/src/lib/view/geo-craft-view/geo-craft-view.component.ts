@@ -107,6 +107,18 @@ export class GeoCraftViewComponent implements AfterViewInit {
 
     return { wx, wy };
   }
+  @HostListener('pointerdown', ['$event'])
+    onPointerDown(event: PointerEvent) {
+      const { wx, wy } = this.getWorldCoordinates(event);
+      this.toolManager.handlePointerDown(this, wx, wy);
+    }
+
+    @HostListener('pointerup', ['$event'])
+    onPointerUp(event: PointerEvent) {
+      const { wx, wy } = this.getWorldCoordinates(event);
+      this.toolManager.handlePointerUp(this, wx, wy);
+    }
+
 
 
   @HostListener('click', ['$event'])

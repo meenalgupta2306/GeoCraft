@@ -1,20 +1,31 @@
-import { Point } from "../model/point";
-
+import { Point } from '../model/point';
+import { CanvasRendererService } from '../view/services/canvas-renderer.service';
+import { GeoCraftViewComponent } from '../view/geo-craft-view/geo-craft-view.component';
 export class DrawPoint {
+  private isGlowing: boolean = false;
+  private isSelected: boolean = false;
 
-    constructor(
-        private point: Point,
-        private isTemporary: boolean = false
-    ){
+  constructor(private point: Point, private isTemporary: boolean = false) {}
+
+  render(renderer: CanvasRendererService, view: GeoCraftViewComponent) {
+    const x = view.toScreenX(this.point.x);
+    const y = view.toScreenY(this.point.y);
+
+    if (this.isGlowing || this.isSelected) {
+      renderer.drawCircle(x, y, 13, true);
     }
-   
 
-    render(renderer: any, view: any) {
-        const sx = view.toScreenX(this.point.x);
-        const sy = view.toScreenY(this.point.y);
+    renderer.drawCircle(x, y, 5); 
+  }
+  setGlow(active: boolean) {
+    this.isGlowing = active;
+  }
 
-        const radius = this.isTemporary ? 3 : 4;
-        const color = this.isTemporary ? 'gray' : 'black';
-        renderer.drawCircle(sx, sy, radius, color);
-    }
+  setSelected(selected: boolean) {
+    this.isSelected = selected;
+  }
+
+  getPoint(): Point {
+    return this.point;
+  }
 }

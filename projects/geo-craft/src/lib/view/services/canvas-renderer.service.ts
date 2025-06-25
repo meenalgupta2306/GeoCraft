@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { config } from './config/default-styles.json';
 
 @Injectable({
   providedIn: 'root',
@@ -15,11 +16,22 @@ export class CanvasRendererService {
     this.ctx.clearRect(0, 0, width, height);
   }
 
-  drawCircle(x: number, y: number, r: number, color: string = 'black') {
+  drawCircle(x: number, y: number, radius: number, glow?: boolean) {
     this.ctx.beginPath();
-    this.ctx.arc(x, y, r, 0, Math.PI * 2);
-    this.ctx.fillStyle = color;
-    this.ctx.fill();
+    this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+
+    if (glow) {
+      this.ctx.fillStyle = config.point.glow.fillStyle; 
+      this.ctx.fill();
+
+      this.ctx.strokeStyle = config.point.glow.strokeStyle;
+      this.ctx.lineWidth = 2;
+      this.ctx.stroke();
+    } else {
+      this.ctx.fillStyle = config.point.fillStyle; 
+      this.ctx.fill();
+    }
+
   }
 
   drawLine(
@@ -46,15 +58,14 @@ export class CanvasRendererService {
     this.ctx.lineWidth = width;
   }
   drawText(text: string, x: number, y: number) {
-  this.ctx.fillText(text, x, y);
-}
+    this.ctx.fillText(text, x, y);
+  }
 
-setFillStyle(color: string) {
-  this.ctx.fillStyle = color;
-}
+  setFillStyle(color: string) {
+    this.ctx.fillStyle = color;
+  }
 
-setFont(font: string) {
-  this.ctx.font = font;
-}
-
+  setFont(font: string) {
+    this.ctx.font = font;
+  }
 }

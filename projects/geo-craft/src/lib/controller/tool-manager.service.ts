@@ -47,6 +47,13 @@ export class ToolManagerService {
       this.activeTool.handleMove(view, x, y);
     }
   }
+  handlePointerDown(view: any, x: number, y: number) {
+    this.activeTool?.handlePointerDown?.(view, x, y);
+  }
+
+  handlePointerUp(view: any, x: number, y: number) {
+    this.activeTool?.handlePointerUp?.(view, x, y);
+  }
 
   
 }
