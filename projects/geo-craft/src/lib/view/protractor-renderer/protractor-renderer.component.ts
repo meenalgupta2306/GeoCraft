@@ -1,6 +1,5 @@
 import {
   Component,
-  OnInit,
   NgZone,
   ViewChild,
   ElementRef,
@@ -18,9 +17,8 @@ export class ProtractorRendererComponent implements AfterViewInit {
   @ViewChild('svgRoot', { static: true }) svgRef!: ElementRef<SVGSVGElement>;
 
   radius: number = 250;
-
-  centerX;
-  centerY;
+  centerX: number;
+  centerY: number;
 
   offsetX = 0;
   offsetY = 0;
@@ -39,14 +37,17 @@ export class ProtractorRendererComponent implements AfterViewInit {
     this.centerY = viewState.canvasHeight / 2;
   }
 
-  ngOnInit(): void {}
   ngAfterViewInit() {
     const svg = this.svgRef.nativeElement;
 
     this.ngZone.runOutsideAngular(() => {
       svg.addEventListener('pointerdown', this.onPointerDown);
+      svg.addEventListener('pointermove', this.onPointerMove);
+      svg.addEventListener('pointerup', this.onPointerUp);
+      svg.addEventListener('pointercancel', this.onPointerUp);
     });
   }
+
   get ticks() {
     const result = [];
     for (let angle = 0; angle <= 180; angle++) {
@@ -72,41 +73,53 @@ export class ProtractorRendererComponent implements AfterViewInit {
   }
 
   private onPointerDown = (event: PointerEvent) => {
-  event.preventDefault();
-  this.dragging = true;
-  this.currentPointerId = event.pointerId;
-  this.startX = event.clientX - this.offsetX;
-  this.startY = event.clientY - this.offsetY;
+    const svg = this.svgRef.nativeElement;
+    const pt = svg.createSVGPoint();
+    pt.x = event.clientX;
+    pt.y = event.clientY;
 
-  const svg = this.svgRef.nativeElement;
-  svg.setPointerCapture(event.pointerId);
+    const svgPt = pt.matrixTransform(svg.getScreenCTM()!.inverse());
 
-  svg.addEventListener('pointermove', this.onPointerMove);
-  svg.addEventListener('pointerup', this.onPointerUp);
-  svg.addEventListener('pointercancel', this.onPointerUp);
-};
+    if (this.isPointInProtractor(svgPt.x, svgPt.y)) {
+      event.preventDefault();
+      event.stopPropagation();
 
-private onPointerMove = (event: PointerEvent) => {
-  if (!this.dragging || event.pointerId !== this.currentPointerId) return;
+      this.dragging = true;
+      this.currentPointerId = event.pointerId;
+      this.startX = event.clientX - this.offsetX;
+      this.startY = event.clientY - this.offsetY;
 
-  this.offsetX = event.clientX - this.startX;
-  this.offsetY = event.clientY - this.startY;
+      svg.setPointerCapture(event.pointerId);
+    }
+  };
 
-  // Just trigger re-render of transform
-  requestAnimationFrame(() => this.cdr.detectChanges());
-};
+  private onPointerMove = (event: PointerEvent) => {
+    if (!this.dragging || event.pointerId !== this.currentPointerId) return;
 
-private onPointerUp = (event: PointerEvent) => {
-  event.stopPropagation();
-  if (event.pointerId !== this.currentPointerId) return;
+    this.offsetX = event.clientX - this.startX;
+    this.offsetY = event.clientY - this.startY;
 
-  this.dragging = false;
-  this.currentPointerId = null;
+    requestAnimationFrame(() => this.cdr.detectChanges());
+  };
 
-  const svg = this.svgRef.nativeElement;
-  svg.releasePointerCapture(event.pointerId);
-  svg.removeEventListener('pointermove', this.onPointerMove);
-  svg.removeEventListener('pointerup', this.onPointerUp);
-  svg.removeEventListener('pointercancel', this.onPointerUp);
-};
+  private onPointerUp = (event: PointerEvent) => {
+    if (event.pointerId !== this.currentPointerId) return;
+
+    this.dragging = false;
+    this.currentPointerId = null;
+
+    const svg = this.svgRef.nativeElement;
+    svg.releasePointerCapture(event.pointerId);
+  };
+
+  isPointInProtractor(x: number, y: number): boolean {
+    const cx = this.centerX + this.offsetX;
+    const cy = this.centerY + this.offsetY;
+
+    const dx = x - cx;
+    const dy = y - cy;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    return distance <= this.radius && dy <= 0;
+  }
 }
