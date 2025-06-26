@@ -37,15 +37,11 @@ export class ToolManagerService {
   }
 
   handleClick(view: any, x: number, y: number) {
-    if (this.activeTool) {
-      this.activeTool.handleClick(view, x, y);
-    }
+    this.activeTool?.handleClick?.(view, x, y);
   }
 
   handleMove(view: any, x: number, y: number){
-    if(this.activeTool){
-      this.activeTool.handleMove(view, x, y);
-    }
+    this.activeTool?.handleMove?.(view, x, y);
   }
   handlePointerDown(view: any, x: number, y: number) {
     this.activeTool?.handlePointerDown?.(view, x, y);

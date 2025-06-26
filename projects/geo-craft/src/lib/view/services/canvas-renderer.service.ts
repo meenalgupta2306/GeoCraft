@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { config } from './config/default-styles.json';
-
+import { config } from '../../config/default-styles.json';
 @Injectable({
   providedIn: 'root',
 })

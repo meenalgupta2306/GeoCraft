@@ -95,6 +95,10 @@ export class ViewStateService {
   this.previewDrawables = items;
 }
 
+  addPreviewDrawable(item: any){
+    this.previewDrawables.push(item);
+  }
+
   clearPreviewDrawables(): void {
     this.previewDrawables = [];
   }

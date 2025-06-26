@@ -10,7 +10,7 @@ import { GeoCraftViewComponent } from '../../view/geo-craft-view/geo-craft-view.
 @Injectable({
   providedIn: 'root'
 })
-export class PointToolService implements Tool {
+export class PointToolService {
   private previewPoint: DrawPoint | null = null;
 
 
@@ -22,82 +22,47 @@ export class PointToolService implements Tool {
 
 
  handleClick(view: any, x: number, y: number) {
-    // 1️⃣ Snap if enabled
-    if (this.viewState.snapToGrid) {
-      const step = this.viewState.gridStep;
-      x = Math.round(x / step) * step;
-      y = Math.round(y / step) * step;
-    }
-
-    // 2️⃣ Check for duplicate point
-    const exists = this.construction.getGeoElements().some(e => {
-      return e instanceof Point && e.distanceTo(x, y) < 1e-6;
-    });
-
-    if (exists) {
-      console.log('Point already exists at', x, y);
-      return; 
-    }
-
-    // 3️⃣ Create and add new point
-    const point = new Point(x, y);
-    this.construction.addGeoElement(point);
-
-    this.eventLog.record({ tool: 'PointTool', x, y });
-
-    const drawable = new DrawPoint(point);
-    this.viewState.addDrawable(drawable);
-  }
+ }
 
   handleMove(view: GeoCraftViewComponent, wx: number, wy: number): void {
       
   }
-   // 👇 Called when pen/finger pressed down
-  handlePointerDown(view: GeoCraftViewComponent, x: number, y: number): void {
-    if (this.viewState.snapToGrid) {
-      const step = this.viewState.gridStep;
-      x = Math.round(x / step) * step;
-      y = Math.round(y / step) * step;
-    }
+  private pointExists(x: number, y: number): boolean {
+    return this.construction.getGeoElements().some(e =>
+      e instanceof Point && e.distanceTo(x, y) < 1e-6
+    );
+  }
 
+  // Called when pen/finger touches down: show glowing preview
+  handlePointerDown(view: GeoCraftViewComponent, x: number, y: number): void {
     const point = new Point(x, y);
     const drawPoint = new DrawPoint(point);
-    drawPoint.setGlow(true); // 💫 Outer ring shown while holding
+    drawPoint.setGlow(true);
 
     this.previewPoint = drawPoint;
     this.viewState.addDrawable(drawPoint);
     view.render();
   }
 
-  // 👇 Called when pen/finger is lifted
+  // Called when pen/finger lifts: confirm or cancel creation
   handlePointerUp(view: GeoCraftViewComponent, x: number, y: number): void {
     if (!this.previewPoint) return;
 
-    if (this.viewState.snapToGrid) {
-      const step = this.viewState.gridStep;
-      x = Math.round(x / step) * step;
-      y = Math.round(y / step) * step;
-    }
-
-    // Check for duplicates
-    const exists = this.construction.getGeoElements().some(e => {
-      return e instanceof Point && e.distanceTo(x, y) < 1e-6;
-    });
-
-    if (exists) {
-      // Remove temporary point if duplicate
+    // If a point already exists nearby, cancel the preview
+    if (this.pointExists(x, y)) {
       this.viewState.clearPreviewDrawables();
       this.previewPoint = null;
       view.render();
       return;
     }
 
-    // Confirm point creation
-    const point = new Point(x, y);
-    this.construction.addGeoElement(point);
+    // Commit new Point to the construction
+    const realPoint = new Point(x, y);
+    this.construction.addGeoElement(realPoint);
     this.eventLog.record({ tool: 'PointTool', x, y });
 
-    this.previewPoint.setGlow(false); // 🧼 Remove glow ring
+    this.previewPoint.setGlow(false);
+
     this.previewPoint = null;
     view.render();
   }

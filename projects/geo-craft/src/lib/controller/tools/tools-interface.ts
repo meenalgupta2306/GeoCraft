@@ -1,8 +1,8 @@
 import { GeoCraftViewComponent } from "../../view/geo-craft-view/geo-craft-view.component";
 
-export interface Tool {
-    handleClick(view: GeoCraftViewComponent, wx: number, wy: number): void;
-    handleMove(view: GeoCraftViewComponent, wx: number, wy: number): void;
-    handlePointerDown(view: GeoCraftViewComponent, wx: number, wy: number): void;
-    handlePointerUp(view: GeoCraftViewComponent, wx: number, wy: number): void;
+export abstract class Tool {
+  handlePointerDown?(view: GeoCraftViewComponent, x: number, y: number): void;
+  handlePointerUp?(view: GeoCraftViewComponent, x: number, y: number): void;
+  handleMove?(view: GeoCraftViewComponent, x: number, y: number): void;
+  handleClick?(view: GeoCraftViewComponent, x: number, y: number): void;
 }
