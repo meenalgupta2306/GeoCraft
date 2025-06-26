@@ -54,13 +54,12 @@ export class ProtractorRendererComponent implements AfterViewInit {
       let type = 'minor';
       if (angle % 10 === 0) type = 'major';
       else if (angle % 5 === 0) type = 'medium';
-
       result.push({ angle, type });
     }
     return result;
   }
 
-  polar(angle: number, r: number): { x: number; y: number } {
+  polar(angle: number, r: number) {
     const rad = (angle * Math.PI) / 180;
     return {
       x: this.centerX + r * Math.cos(rad),
@@ -80,17 +79,21 @@ export class ProtractorRendererComponent implements AfterViewInit {
 
     const svgPt = pt.matrixTransform(svg.getScreenCTM()!.inverse());
 
-    if (this.isPointInProtractor(svgPt.x, svgPt.y)) {
-      event.preventDefault();
-      event.stopPropagation();
+    // Account for current offset before hit testing
+    const localX = svgPt.x - this.offsetX;
+    const localY = svgPt.y - this.offsetY;
 
-      this.dragging = true;
-      this.currentPointerId = event.pointerId;
-      this.startX = event.clientX - this.offsetX;
-      this.startY = event.clientY - this.offsetY;
+    if (!this.isPointInProtractor(localX, localY)) return;
 
-      svg.setPointerCapture(event.pointerId);
-    }
+    event.preventDefault();
+    event.stopPropagation();
+
+    this.dragging = true;
+    this.currentPointerId = event.pointerId;
+    this.startX = event.clientX - this.offsetX;
+    this.startY = event.clientY - this.offsetY;
+
+    svg.setPointerCapture(event.pointerId);
   };
 
   private onPointerMove = (event: PointerEvent) => {
@@ -113,11 +116,9 @@ export class ProtractorRendererComponent implements AfterViewInit {
   };
 
   isPointInProtractor(x: number, y: number): boolean {
-    const cx = this.centerX + this.offsetX;
-    const cy = this.centerY + this.offsetY;
 
-    const dx = x - cx;
-    const dy = y - cy;
+    const dx = x - this.centerX;
+    const dy = y - this.centerY;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     return distance <= this.radius && dy <= 0;
