@@ -5,14 +5,15 @@ import { GeoCraftViewComponent } from './view/geo-craft-view/geo-craft-view.comp
 import { ToolBarComponent } from './view/tool-bar/tool-bar.component';
 import { FormsModule } from '@angular/forms';
 import { CompassRendererComponent } from './view/compass-renderer/compass-renderer.component';
-
+import { ProtractorRendererComponent } from './view/protractor-renderer/protractor-renderer.component';
 
 @NgModule({
   declarations: [
     GeoCraftComponent,
     ToolBarComponent,
     GeoCraftViewComponent,
-    CompassRendererComponent
+    CompassRendererComponent,
+    ProtractorRendererComponent
   ],
   imports: [
     CommonModule,
