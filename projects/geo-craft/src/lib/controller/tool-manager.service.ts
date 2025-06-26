@@ -27,7 +27,8 @@ export class ToolManagerService {
       case 'segment':
         this.activeTool = this.segmentTool;
         break;
-      case 'compass':
+      case 'compass' :
+      case 'protractor':
         this.activeToolRenderer = toolName;
         break;
       default:

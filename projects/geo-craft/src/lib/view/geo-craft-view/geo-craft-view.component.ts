@@ -166,7 +166,7 @@ drawGrid(renderer: CanvasRendererService) {
   const range = 10;
 
   // 1️⃣ Subgrid
-  renderer.setStrokeStyle('#D3D3D3');
+  renderer.setStrokeStyle('#eeeeee');
   renderer.setLineWidth(0.5);
   for (let x = -range; x <= range; x += subStep) {
     const sx = this.toScreenX(x);
@@ -178,8 +178,8 @@ drawGrid(renderer: CanvasRendererService) {
   }
 
   // 2️⃣ Main grid
-  renderer.setStrokeStyle('#ccc');
-  renderer.setLineWidth(1.5);
+  renderer.setStrokeStyle('#dddddd');
+  renderer.setLineWidth(1.2);
   for (let x = -range; x <= range; x += step) {
     const sx = this.toScreenX(x);
     renderer.drawLine(sx, this.toScreenY(-range), sx, this.toScreenY(range));
@@ -191,7 +191,7 @@ drawGrid(renderer: CanvasRendererService) {
 
   // 3️⃣ Axes
   renderer.setStrokeStyle('#000');
-  renderer.setLineWidth(2);
+  renderer.setLineWidth(1.5);
   renderer.drawLine(this.toScreenX(0), this.toScreenY(-range), this.toScreenX(0), this.toScreenY(range)); // Y axis
   renderer.drawLine(this.toScreenX(-range), this.toScreenY(0), this.toScreenX(range), this.toScreenY(0)); // X axis
 
