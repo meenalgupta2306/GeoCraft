@@ -1,95 +1,114 @@
-<svg [attr.width]="viewState.canvasWidth" [attr.height]="viewState.canvasHeight" style="overflow: visible;">
-  <!-- Outer semicircle arc -->
-  <path
-    [attr.d]="'M ' + (centerX + radius) + ' ' + centerY +
-              ' A ' + radius + ' ' + radius + ' 0 0 0 ' +
-              (centerX - radius) + ' ' + centerY"
-    stroke="black"
-    fill="none"
-    stroke-width="2"
-  />
-
-  <!-- Baseline -->
-  <line
-    [attr.x1]="centerX - radius"
-    [attr.y1]="centerY"
-    [attr.x2]="centerX + radius"
-    [attr.y2]="centerY"
-    stroke="black"
-    stroke-width="2"
-  />
-
-  <!-- Center semicircle -->
-  <path
-    [attr.d]="'M ' + (centerX - 15) + ' ' + centerY +
-              ' A 15 15 0 0 1 ' + (centerX + 15) + ' ' + centerY"
-    stroke="black"
-    fill="none"
-    stroke-width="1"
-  />
-
-  <!-- Center hole -->
-  <circle [attr.cx]="centerX" [attr.cy]="centerY" r="2" fill="black" />
-
-  <!-- Radial lines (only 90° from center) -->
-  <ng-container *ngFor="let tick of ticks">
-  <line
-    *ngIf="tick.type === 'major'"
-    [attr.x1]="tick.angle === 90 ? centerX : polar(tick.angle, 15).x"
-    [attr.y1]="tick.angle === 90 ? centerY : polar(tick.angle, 15).y"
-    [attr.x2]="tick.angle === 90
-      ? polar(tick.angle, radius - 18).x
-      : polar(tick.angle, radius - 55).x"
-    [attr.y2]="tick.angle === 90
-      ? polar(tick.angle, radius - 18).y
-      : polar(tick.angle, radius - 55).y"
-    stroke="black"
-    [attr.stroke-width]="tick.angle === 90 ? 1.5 : 1"
-  />
-</ng-container>
-
-
-  <!-- Tick marks -->
-  <ng-container *ngFor="let tick of ticks">
-    <line
-      [attr.x1]="polar(tick.angle, radius).x"
-      [attr.y1]="polar(tick.angle, radius).y"
-      [attr.x2]="polar(tick.angle, radius - (
-        tick.type === 'major' ? 12 :
-        tick.type === 'medium' ? 8 :
-        4)).x"
-      [attr.y2]="polar(tick.angle, radius - (
-        tick.type === 'major' ? 12 :
-        tick.type === 'medium' ? 8 :
-        4)).y"
+<svg
+  #svgRoot
+  [attr.width]="viewState.canvasWidth"
+  [attr.height]="viewState.canvasHeight"
+  style="overflow: visible; touch-action: none;"
+>
+  <g [attr.transform]="'translate(' + offsetX + ',' + offsetY + ')'">
+    <!-- Outer semicircle -->
+    <path
+      [attr.d]="'M ' + (centerX + radius) + ' ' + centerY +
+                ' A ' + radius + ' ' + radius + ' 0 0 0 ' +
+                (centerX - radius) + ' ' + centerY"
       stroke="black"
+      fill="none"
+      stroke-width="2"
+    />
+
+    <!-- Baseline -->
+    <line
+      [attr.x1]="centerX - radius"
+      [attr.y1]="centerY"
+      [attr.x2]="centerX + radius"
+      [attr.y2]="centerY"
+      stroke="black"
+      stroke-width="2"
+    />
+
+    <!-- Center semicircle -->
+    <path
+      [attr.d]="'M ' + (centerX - 20) + ' ' + centerY +
+                ' A 20 20 0 0 1 ' + (centerX + 20) + ' ' + centerY"
+      stroke="black"
+      fill="none"
       stroke-width="1"
     />
-  </ng-container>
 
-  <!-- Labels -->
-  <ng-container *ngFor="let tick of ticks">
-    <text
-      *ngIf="tick.type === 'major'"
-      [attr.x]="labelAt(tick.angle, radius - 20).x"
-      [attr.y]="labelAt(tick.angle, radius - 20).y"
-      font-size="10"
-      font-weight="bold"
-      text-anchor="middle"
-      dominant-baseline="middle"
-    >
-      {{ tick.angle }}
-    </text>
-    <text
-      *ngIf="tick.type === 'major'"
-      [attr.x]="labelAt(tick.angle, radius - 48).x"
-      [attr.y]="labelAt(tick.angle, radius - 48).y"
-      font-size="10"
-      font-weight="bold"
-      text-anchor="middle"
-      dominant-baseline="middle"
-    >
-      {{ 180 - tick.angle }}
-    </text>
-  </ng-container>
+    <!-- Center hole -->
+    <circle [attr.cx]="centerX" [attr.cy]="centerY" r="2" fill="black" />
+
+    <!-- Radial lines (major ticks) -->
+    <ng-container *ngFor="let tick of ticks">
+      <line
+        *ngIf="tick.type === 'major'"
+        [attr.x1]="tick.angle === 90 ? centerX : polar(tick.angle, 20).x"
+        [attr.y1]="tick.angle === 90 ? centerY : polar(tick.angle, 20).y"
+        [attr.x2]="polar(tick.angle, radius - 55).x"
+        [attr.y2]="polar(tick.angle, radius - 55).y"
+        stroke="black"
+        [attr.stroke-width]="tick.angle === 90 ? 1.5 : 1"
+      />
+    </ng-container>
+
+    <!-- Tick marks -->
+    <ng-container *ngFor="let tick of ticks">
+      <line
+        [attr.x1]="polar(tick.angle, radius).x"
+        [attr.y1]="polar(tick.angle, radius).y"
+        [attr.x2]="polar(tick.angle, radius - (
+          tick.type === 'major' ? 12 :
+          tick.type === 'medium' ? 8 :
+          4)).x"
+        [attr.y2]="polar(tick.angle, radius - (
+          tick.type === 'major' ? 12 :
+          tick.type === 'medium' ? 8 :
+          4)).y"
+        stroke="black"
+        stroke-width="1"
+      />
+    </ng-container>
+
+    <!-- Labels -->
+    <ng-container *ngFor="let tick of ticks">
+      <ng-container *ngIf="tick.type === 'major' && tick.angle !== 90">
+        <!-- Outer label (clockwise) -->
+        <text
+          [attr.x]="labelAt(tick.angle, radius - 20).x"
+          [attr.y]="labelAt(tick.angle, radius - 20).y"
+          font-size="10"
+          font-weight="bold"
+          text-anchor="middle"
+          dominant-baseline="middle"
+        >
+          {{ tick.angle }}
+        </text>
+
+        <!-- Inner label (counter-clockwise) -->
+        <text
+          [attr.x]="labelAt(tick.angle, radius - 48).x"
+          [attr.y]="labelAt(tick.angle, radius - 48).y"
+          font-size="10"
+          font-weight="bold"
+          text-anchor="middle"
+          dominant-baseline="middle"
+        >
+          {{ 180 - tick.angle }}
+        </text>
+      </ng-container>
+
+      <!-- Special centered label for 90° -->
+      <ng-container *ngIf="tick.angle === 90">
+        <text
+          [attr.x]="labelAt(90, radius - 34).x"
+          [attr.y]="labelAt(90, radius - 34).y"
+          font-size="14"
+          font-weight="bold"
+          text-anchor="middle"
+          dominant-baseline="middle"
+        >
+          90
+        </text>
+      </ng-container>
+    </ng-container>
+  </g>
 </svg>
