@@ -6,8 +6,8 @@
             "strokeStyle": "rgba(69, 24, 184, 0.48)",
             "radius" : 13
         },
-        "fillStyle": "rgba(69, 24, 184, 0.48)",
-        "radius": 5
+        "fillStyle": "#0000FF",
+        "radius": 4
         
     },
    

@@ -23,6 +23,8 @@ export class ProtractorRendererComponent implements AfterViewInit {
   offsetX = 0;
   offsetY = 0;
 
+  locked = false;
+
   private dragging = false;
   private startX = 0;
   private startY = 0;
@@ -45,6 +47,7 @@ export class ProtractorRendererComponent implements AfterViewInit {
       svg.addEventListener('pointermove', this.onPointerMove);
       svg.addEventListener('pointerup', this.onPointerUp);
       svg.addEventListener('pointercancel', this.onPointerUp);
+      svg.addEventListener('click', this.onClick);
     });
   }
 
@@ -116,11 +119,27 @@ export class ProtractorRendererComponent implements AfterViewInit {
   };
 
   isPointInProtractor(x: number, y: number): boolean {
-
     const dx = x - this.centerX;
     const dy = y - this.centerY;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     return distance <= this.radius && dy <= 0;
   }
+  private onClick = (event: MouseEvent) => {
+    const svg = this.svgRef.nativeElement;
+    const pt = svg.createSVGPoint();
+    pt.x = event.clientX;
+    pt.y = event.clientY;
+
+    const svgPt = pt.matrixTransform(svg.getScreenCTM()!.inverse());
+
+    const localX = svgPt.x - this.offsetX;
+    const localY = svgPt.y - this.offsetY;
+
+    if (this.isPointInProtractor(localX, localY)) {
+      this.locked = !this.locked;
+      alert(`${this.locked? 'locked': 'unlocked'}`)
+      event.stopPropagation();
+    }
+  };
 }
