@@ -1,0 +1,13 @@
+{"config" : {
+  "labelSensitive": false,
+  "steps": [
+    {
+      "id": 1,
+      "tool": "point",
+      "validate": {
+        "coordinate": [1,1]
+      }
+      
+    }
+  ]
+}}

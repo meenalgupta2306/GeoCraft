@@ -6,31 +6,25 @@ import { ConstructionService } from '../construction.service';
 import { EventLogService } from '../event-log.service';
 import { ViewStateService } from '../../view/services/view-state.service';
 import { GeoCraftViewComponent } from '../../view/geo-craft-view/geo-craft-view.component';
+import { StepEvaluatorService } from '../step-evaluator.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class PointToolService {
+export class PointToolService implements Tool {
   private previewPoint: DrawPoint | null = null;
-
 
   constructor(
     private construction: ConstructionService,
     private eventLog: EventLogService,
-    private viewState: ViewStateService
-  ) { }
+    private viewState: ViewStateService,
+    private stepEvaluator: StepEvaluatorService
+  ) {}
 
-
- handleClick(view: any, x: number, y: number) {
- }
-
-  handleMove(view: GeoCraftViewComponent, wx: number, wy: number): void {
-      
-  }
   private pointExists(x: number, y: number): boolean {
-    return this.construction.getGeoElements().some(e =>
-      e instanceof Point && e.distanceTo(x, y) < 1e-6
-    );
+    return this.construction
+      .getGeoElements()
+      .some((e) => e instanceof Point && e.distanceTo(x, y) < 1e-6);
   }
 
   // Called when pen/finger touches down: show glowing preview
@@ -67,5 +61,21 @@ export class PointToolService {
     view.render();
   }
 
+  validate(params: any, labelSensitive: boolean): boolean {
+    // If no coordinate to compare, accept any point
+    debugger
+    if (params?.id && !params?.coordinate) return true;
 
+    const [x, y] = params?.coordinate;
+
+    const point = this.construction.getLastGeoElement();
+    const dx = point.x - x;
+    const dy = point.y - y;
+    debugger
+    console.log("------------------",dx, dy)
+    const distance = Math.hypot(dx, dy);
+
+    console.log("--------------------", distance, this.viewState.toleranceFactor)
+    return distance <= this.viewState.toleranceFactor;
+  }
 }

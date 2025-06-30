@@ -22,11 +22,9 @@ export class ToolBarComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    debugger
   }
 
   selectTool(toolName: string) {
-    debugger
      this.toolManager.setActiveTool(toolName);
   } 
   

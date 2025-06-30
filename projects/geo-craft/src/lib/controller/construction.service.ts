@@ -1,16 +1,21 @@
 import { Injectable } from '@angular/core';
+import { config } from '../config/config.json';
+import { StepEvaluatorService } from './step-evaluator.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ConstructionService {
-
-  constructor() { }
+  constructor(private stepEvaluator: StepEvaluatorService) {}
   private geoElements: any[] = [];
 
   addGeoElement(geo: any) {
     this.geoElements.push(geo);
-    console.log(this.geoElements)
+    console.log(this.geoElements);
+  }
+
+  getLastGeoElement(): any {
+    return this.geoElements[this.geoElements.length - 1];
   }
 
   getGeoElements() {

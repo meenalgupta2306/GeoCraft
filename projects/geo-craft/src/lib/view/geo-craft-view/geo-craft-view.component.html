@@ -3,8 +3,8 @@
   <canvas #canvasContainer class="canvas-area"></canvas>
 
   <!-- Compass on top -->
-  <lib-compass-renderer class="compass" *ngIf="toolManager.activeToolRenderer === 'compass'"></lib-compass-renderer>
-  <lib-protractor-renderer class="compass" *ngIf="toolManager.activeToolRenderer === 'protractor'"></lib-protractor-renderer>
+  <lib-compass-renderer class="compass" *ngIf="toolManager.activeToolName === 'compass'"></lib-compass-renderer>
+  <lib-protractor-renderer class="compass" *ngIf="toolManager.activeToolName === 'protractor'"></lib-protractor-renderer>
 </div>
 
 

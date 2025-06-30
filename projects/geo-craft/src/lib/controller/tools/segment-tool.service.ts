@@ -122,4 +122,8 @@ export class SegmentToolService implements Tool {
     this.startPoint = null;
     this.viewStateService.clearPreviewDrawables();
   }
+
+  validate(){
+    return true;
+  }
 }

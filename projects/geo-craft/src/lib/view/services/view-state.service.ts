@@ -10,6 +10,7 @@ export class ViewStateService {
   showGrid = true;
   snapToGrid = false;
   gridStep = 1;
+  readonly toleranceFactor = 0.03;
 
   // ✅ Coordinate system
   screenOriginX = 400; // will be updated dynamically
@@ -32,9 +33,7 @@ export class ViewStateService {
   private drawables: any[] = [];
   private previewDrawables: any[] = [];
 
-
   constructor() {}
-
 
   addDrawable(drawable: any) {
     this.drawables.push(drawable);
@@ -92,10 +91,10 @@ export class ViewStateService {
   }
 
   setPreviewDrawables(items: any[]): void {
-  this.previewDrawables = items;
-}
+    this.previewDrawables = items;
+  }
 
-  addPreviewDrawable(item: any){
+  addPreviewDrawable(item: any) {
     this.previewDrawables.push(item);
   }
 
@@ -106,4 +105,7 @@ export class ViewStateService {
   getPreviewDrawables(): any[] {
     return this.previewDrawables;
   }
+  get tolerance(): number {
+    return this.gridStep ;
   }
+}

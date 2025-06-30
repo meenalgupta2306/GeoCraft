@@ -11,6 +11,8 @@ import { ToolManagerService } from '../../controller/tool-manager.service';
 import { ViewStateService } from '../services/view-state.service';
 import { EventLogService } from '../../controller/event-log.service';
 import { ConstructionService } from '../../controller/construction.service';
+import { StepEvaluatorService } from '../../controller/step-evaluator.service';
+import {config} from "../../config/config.json";
 
 @Component({
   selector: 'lib-geo-craft-view',
@@ -28,7 +30,8 @@ export class GeoCraftViewComponent implements AfterViewInit {
     private renderer: CanvasRendererService,
     public viewState: ViewStateService,
     private eventLog: EventLogService,
-    private construction: ConstructionService
+    private construction: ConstructionService,
+    private stepEvaluator: StepEvaluatorService
   ) {}
 
   ngAfterViewInit() {
@@ -55,6 +58,7 @@ export class GeoCraftViewComponent implements AfterViewInit {
       canvas.width,
       canvas.height
     );
+    this.stepEvaluator.loadConfig(config);
   }
 
   @HostListener('window:resize')
@@ -128,6 +132,8 @@ export class GeoCraftViewComponent implements AfterViewInit {
     // alert(`${sx} -> ${wx}, ${sy} -> ${wy}`)
     this.toolManager.handleClick(this, wx, wy);
     this.render();
+
+    this.toolManager.validate();
   }
 
   @HostListener('pointermove', ['$event'])
@@ -145,7 +151,6 @@ export class GeoCraftViewComponent implements AfterViewInit {
     const canvas = this.canvasRef.nativeElement;
     this.renderer.clear(canvas.width, canvas.height);
 
-    debugger;
      // ✅ 1. Draw grid if enabled
     if (this.viewState.showGrid) {
       this.drawGrid(this.renderer);
