@@ -46,20 +46,6 @@ export class StepEvaluatorService {
           labelSensitive: this.config.labelSensitive
         }
       }
-      // console.log(this.toolManager)
-      // this.toolManager.check();
-      // const isValid = this.toolManager.validate(
-      //   step.validate || null,
-      //   this.config.labelSensitive
-      // );
-
-      // if (isValid) {
-      //   alert('validated');
-      //   this.markStepAsCompleted(step.id);
-      //   break;
-      // }else{
-      //   alert("not correct")
-      // }
     }
     return {
       params: null,

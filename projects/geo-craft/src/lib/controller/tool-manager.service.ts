@@ -40,13 +40,7 @@ export class ToolManagerService {
     }
   }
 
-  handleClick(view: any, x: number, y: number) {
-    this.activeTool?.handleClick?.(view, x, y);
-  }
-
-  handleMove(view: any, x: number, y: number){
-    this.activeTool?.handleMove?.(view, x, y);
-  }
+ 
   handlePointerDown(view: any, x: number, y: number) {
     this.activeTool?.handlePointerDown?.(view, x, y);
   }
@@ -57,14 +51,7 @@ export class ToolManagerService {
 
   validate(){
     const {id, params, labelSensitive} = this.stepEvaluator.validateConstruction(this.activeToolName);
-    const isValid = this.activeTool?.validate(params, labelSensitive);
-    if(isValid && this.activeTool){  
-    alert('validated');
-        this.stepEvaluator.markStepAsCompleted(id);
-        
-      }else{
-        alert("not correct")
-      }
+    this.activeTool?.validate(id, params, labelSensitive);
   }
 
   check(){

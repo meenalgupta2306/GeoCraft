@@ -121,31 +121,20 @@ export class GeoCraftViewComponent implements AfterViewInit {
     onPointerUp(event: PointerEvent) {
       const { wx, wy } = this.getWorldCoordinates(event);
       this.toolManager.handlePointerUp(this, wx, wy);
+       this.toolManager.validate();
     }
 
 
+  // @HostListener('pointermove', ['$event'])
+  // onPointerMove(event: PointerEvent) {
+  //   const { wx, wy } = this.getWorldCoordinates(event);
 
-  @HostListener('click', ['$event'])
-  onCanvasClick(event: MouseEvent) {
-    const { wx, wy } = this.getWorldCoordinates(event);
+  //   // 🔁 Send move to the current tool
+  //   this.toolManager.handleMove?.(this, wx, wy);
 
-    // alert(`${sx} -> ${wx}, ${sy} -> ${wy}`)
-    this.toolManager.handleClick(this, wx, wy);
-    this.render();
-
-    this.toolManager.validate();
-  }
-
-  @HostListener('pointermove', ['$event'])
-  onPointerMove(event: PointerEvent) {
-    const { wx, wy } = this.getWorldCoordinates(event);
-
-    // 🔁 Send move to the current tool
-    this.toolManager.handleMove?.(this, wx, wy);
-
-    // 🔁 Re-render to show preview
-    this.render();
-  }
+  //   // 🔁 Re-render to show preview
+  //   this.render();
+  // }
 
   render() {
     const canvas = this.canvasRef.nativeElement;

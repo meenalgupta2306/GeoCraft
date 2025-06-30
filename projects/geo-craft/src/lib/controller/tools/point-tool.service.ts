@@ -7,6 +7,7 @@ import { EventLogService } from '../event-log.service';
 import { ViewStateService } from '../../view/services/view-state.service';
 import { GeoCraftViewComponent } from '../../view/geo-craft-view/geo-craft-view.component';
 import { StepEvaluatorService } from '../step-evaluator.service';
+import { ToolManagerService } from '../tool-manager.service';
 
 @Injectable({
   providedIn: 'root',
@@ -61,21 +62,28 @@ export class PointToolService implements Tool {
     view.render();
   }
 
-  validate(params: any, labelSensitive: boolean): boolean {
+  validate(stepId: number, params: any, labelSensitive: boolean) {
     // If no coordinate to compare, accept any point
-    debugger
-    if (params?.id && !params?.coordinate) return true;
+    debugger;
+    let isValid;
+    isValid = (stepId && !params?.coordinate);
 
-    const [x, y] = params?.coordinate;
+    if (stepId) {
+      const [x, y] = params?.coordinate;
 
-    const point = this.construction.getLastGeoElement();
-    const dx = point.x - x;
-    const dy = point.y - y;
-    debugger
-    console.log("------------------",dx, dy)
-    const distance = Math.hypot(dx, dy);
+      const point = this.construction.getLastGeoElement();
+      const dx = point.x - x;
+      const dy = point.y - y;
+      debugger;
+      const distance = Math.hypot(dx, dy);
 
-    console.log("--------------------", distance, this.viewState.toleranceFactor)
-    return distance <= this.viewState.toleranceFactor;
+      isValid = distance <= this.viewState.toleranceFactor;
+      if (isValid) {
+        alert('validated');
+        this.stepEvaluator.markStepAsCompleted(stepId);
+      } else {
+        alert('not correct');
+      }
+    }
   }
 }
