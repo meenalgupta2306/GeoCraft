@@ -17,6 +17,10 @@ export class DrawPoint {
     }
 
     renderer.drawCircle(x, y, config.point.radius); 
+
+    if (this.point.label) {
+    renderer.drawText(this.point.label, x + 8, y - 8); 
+  }
   }
   setGlow(active: boolean) {
     this.isGlowing = active;

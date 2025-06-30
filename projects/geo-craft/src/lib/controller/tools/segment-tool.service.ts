@@ -7,6 +7,7 @@ import { LineSegment } from '../../model/segment';
 import { GeoCraftViewComponent } from '../../view/geo-craft-view/geo-craft-view.component';
 import { DrawSegment } from '../../drawable/draw-segment';
 import { DrawPoint } from '../../drawable/draw-point';
+import { PointToolService } from './point-tool.service';
 
 @Injectable({
   providedIn: 'root',
@@ -21,44 +22,13 @@ export class SegmentToolService implements Tool {
 
   constructor(
     private constructionService: ConstructionService,
-    private viewStateService: ViewStateService
+    private viewStateService: ViewStateService,
+    private pointToolService: PointToolService
   ) {}
 
-  //   handleClick(view: GeoCraftViewComponent, x: number, y: number): void {
-  //   const point = new Point(x, y);
-
-  //   if (!this.startPoint) {
-  //     this.startPoint = point;
-
-  //     // ⬇️ Show glowing point preview
-  //     const dp = new DrawPoint(point);
-  //     dp.setGlow(true);
-  //     this.previewPoint = dp;
-
-  //     this.viewStateService.addPreviewDrawable(dp);
-  //   } else {
-  //     const segment = new LineSegment(this.startPoint, point);
-  //     this.constructionService.addGeoElement(segment);
-
-  //     // ⬇️ Remove preview glow
-  //     this.viewStateService.clearPreviewDrawables();
-
-  //     // ⬇️ Add final (non-glowing) points and segment
-  //     this.viewStateService.addDrawable(new DrawPoint(this.startPoint));
-  //     this.viewStateService.addDrawable(new DrawPoint(point));
-  //     this.viewStateService.addDrawable(new DrawSegment(segment));
-
-  //     // Reset state
-  //     this.startPoint = null;
-  //     this.previewPoint = null;
-  //   }
-
-  //   view.render();
-  // }
-
-  // Called when pen/finger lifts:
   handlePointerDown(view: GeoCraftViewComponent, x: number, y: number): void {
-    const point = new Point(x, y);
+    const label = this.pointToolService.getNextLabel();
+    const point = new Point(x, y, label);
 
     if (!this.startPoint) {
       // First point: start a segment

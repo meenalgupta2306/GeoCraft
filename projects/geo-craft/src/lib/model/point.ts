@@ -1,10 +1,12 @@
 export class Point {
     x: number;
     y: number;
+    label: string;
 
-    constructor(x: number, y: number) {
+    constructor(x: number, y: number, label?: string) {
         this.x = x;
         this.y = y;
+        this.label = label?? '';
     }
 
     public distanceTo(x1: number,y1: number) {

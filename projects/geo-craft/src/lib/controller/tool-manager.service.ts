@@ -10,7 +10,7 @@ import { StepEvaluatorService } from './step-evaluator.service';
 })
 export class ToolManagerService {
 
-  private activeTool!: Tool;
+  private activeTool: Tool| null = null;
 
   public activeToolRenderer: any;
   public activeToolName: any;
@@ -22,6 +22,7 @@ export class ToolManagerService {
   ) { }
 
   setActiveTool(toolName: string) {
+    debugger
     this.activeToolName = toolName
     switch (toolName) {
       case 'point':
@@ -36,12 +37,13 @@ export class ToolManagerService {
       //   break;
       default:
         console.warn(`Unknown tool: ${toolName}`);
-        this.activeTool = this.pointTool; // fallback
+        this.activeTool = null; // fallback
     }
   }
 
  
   handlePointerDown(view: any, x: number, y: number) {
+    debugger
     this.activeTool?.handlePointerDown?.(view, x, y);
   }
 

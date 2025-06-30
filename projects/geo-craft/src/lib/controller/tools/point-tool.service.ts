@@ -14,6 +14,9 @@ import { ToolManagerService } from '../tool-manager.service';
 })
 export class PointToolService implements Tool {
   private previewPoint: DrawPoint | null = null;
+  private pointCount = 0;
+  private currentLabel: string | null = null;
+  private point!: Point;
 
   constructor(
     private construction: ConstructionService,
@@ -30,8 +33,9 @@ export class PointToolService implements Tool {
 
   // Called when pen/finger touches down: show glowing preview
   handlePointerDown(view: GeoCraftViewComponent, x: number, y: number): void {
-    const point = new Point(x, y);
-    const drawPoint = new DrawPoint(point);
+    this.currentLabel = this.getNextLabel();
+    this.point = new Point(x, y, this.currentLabel);
+    const drawPoint = new DrawPoint(this.point);
     drawPoint.setGlow(true);
 
     this.previewPoint = drawPoint;
@@ -51,10 +55,8 @@ export class PointToolService implements Tool {
       return;
     }
 
-    // Commit new Point to the construction
-    const realPoint = new Point(x, y);
-    this.construction.addGeoElement(realPoint);
-    this.eventLog.record({ tool: 'PointTool', x, y });
+    this.construction.addGeoElement(this.point);
+    this.eventLog.record({ tool: 'PointTool', x, y, label: this.currentLabel });
 
     this.previewPoint.setGlow(false);
 
@@ -66,7 +68,7 @@ export class PointToolService implements Tool {
     // If no coordinate to compare, accept any point
     debugger;
     let isValid;
-    isValid = (stepId && !params?.coordinate);
+    isValid = stepId && !params?.coordinate;
 
     if (stepId) {
       const [x, y] = params?.coordinate;
@@ -85,5 +87,18 @@ export class PointToolService implements Tool {
         alert('not correct');
       }
     }
+  }
+  getNextLabel(): string {
+    const cycle = Math.floor(this.pointCount / 26);
+    const index = this.pointCount % 26;
+
+    let label = String.fromCharCode(65 + index); // A-Z
+
+    if (cycle > 0) {
+      label += `'`.repeat(cycle); 
+    }
+
+    this.pointCount++;
+    return label;
   }
 }

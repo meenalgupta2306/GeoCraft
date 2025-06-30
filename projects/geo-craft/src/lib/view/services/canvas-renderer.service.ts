@@ -57,8 +57,19 @@ export class CanvasRendererService {
     this.ctx.lineWidth = width;
   }
   drawText(text: string, x: number, y: number) {
-    this.ctx.fillText(text, x, y);
-  }
+  const ctx = this.ctx;
+  ctx.save();
+
+  ctx.font = '14px Arial';
+  ctx.fillStyle = 'black';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+
+  ctx.fillText(text, x, y);
+
+  ctx.restore();
+}
+
 
   setFillStyle(color: string) {
     this.ctx.fillStyle = color;
