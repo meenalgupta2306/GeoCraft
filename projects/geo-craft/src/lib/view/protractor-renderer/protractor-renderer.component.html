@@ -2,17 +2,29 @@
   #svgRoot
   [attr.width]="viewState.canvasWidth"
   [attr.height]="viewState.canvasHeight"
-  style="overflow: visible; touch-action: none;"
+  style="overflow: visible; touch-action: none"
 >
-  <g [attr.transform]="'translate(' + offsetX + ',' + offsetY + ')'">
+  <g [attr.transform]="transformString">
     <!-- Outer semicircle -->
     <path
-      [attr.d]="'M ' + (centerX + radius) + ' ' + centerY +
-                ' A ' + radius + ' ' + radius + ' 0 0 0 ' +
-                (centerX - radius) + ' ' + centerY"
+      [attr.d]="
+        'M ' +
+        (centerX + radius) +
+        ' ' +
+        centerY +
+        ' A ' +
+        radius +
+        ' ' +
+        radius +
+        ' 0 0 0 ' +
+        (centerX - radius) +
+        ' ' +
+        centerY
+      "
       stroke="black"
       fill="none"
       stroke-width="2"
+      style="cursor: crosshair"
     />
 
     <!-- Baseline -->
@@ -25,10 +37,41 @@
       stroke-width="2"
     />
 
+    <!-- Inner movement zone (visual indicator) -->
+    <path
+      [attr.d]="
+        'M ' +
+        (centerX + innerRadius) +
+        ' ' +
+        centerY +
+        ' A ' +
+        innerRadius +
+        ' ' +
+        innerRadius +
+        ' 0 0 0 ' +
+        (centerX - innerRadius) +
+        ' ' +
+        centerY
+      "
+      stroke="#cccccc"
+      fill="rgba(200, 200, 200, 0.1)"
+      stroke-width="1"
+      stroke-dasharray="3,3"
+      style="cursor: move"
+    />
+
     <!-- Center semicircle -->
     <path
-      [attr.d]="'M ' + (centerX - 20) + ' ' + centerY +
-                ' A 20 20 0 0 1 ' + (centerX + 20) + ' ' + centerY"
+      [attr.d]="
+        'M ' +
+        (centerX - 20) +
+        ' ' +
+        centerY +
+        ' A 20 20 0 0 1 ' +
+        (centerX + 20) +
+        ' ' +
+        centerY
+      "
       stroke="black"
       fill="none"
       stroke-width="1"
@@ -55,14 +98,20 @@
       <line
         [attr.x1]="polar(tick.angle, radius).x"
         [attr.y1]="polar(tick.angle, radius).y"
-        [attr.x2]="polar(tick.angle, radius - (
-          tick.type === 'major' ? 12 :
-          tick.type === 'medium' ? 8 :
-          4)).x"
-        [attr.y2]="polar(tick.angle, radius - (
-          tick.type === 'major' ? 12 :
-          tick.type === 'medium' ? 8 :
-          4)).y"
+        [attr.x2]="
+          polar(
+            tick.angle,
+            radius -
+              (tick.type === 'major' ? 12 : tick.type === 'medium' ? 8 : 4)
+          ).x
+        "
+        [attr.y2]="
+          polar(
+            tick.angle,
+            radius -
+              (tick.type === 'major' ? 12 : tick.type === 'medium' ? 8 : 4)
+          ).y
+        "
         stroke="black"
         stroke-width="1"
       />
