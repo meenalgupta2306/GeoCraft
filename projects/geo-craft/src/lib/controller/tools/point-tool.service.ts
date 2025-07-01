@@ -67,7 +67,7 @@ export class PointToolService implements Tool {
   validate(step: any, labelSensitive: boolean) {
 
     //Skip validation if no id or no coordinate is given (treat as implicitly valid)
-    if(!step.id || !step.data?.coordinate || !step) return ;
+    if(!step?.id || !step?.data?.coordinate || !step) return ;
 
     const { id, data } = step;  
 
