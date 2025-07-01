@@ -15,35 +15,29 @@ export class ToolManagerService {
   public activeToolRenderer: any;
   public activeToolName: any;
 
+  public toolMap: Record<string, Tool>;
+
   constructor(
     private pointTool: PointToolService,
     private segmentTool: SegmentToolService,
     private stepEvaluator: StepEvaluatorService
-  ) { }
+  ) {
+    this.toolMap = {
+      point: this.pointTool,
+      segment: this.segmentTool,
+    };
+   }
 
   setActiveTool(toolName: string) {
     debugger
     this.activeToolName = toolName
-    switch (toolName) {
-      case 'point':
-        this.activeTool = this.pointTool;
-        break;
-      case 'segment':
-        this.activeTool = this.segmentTool;
-        break;
-      // case 'compass' :
-      // case 'protractor':
-      //   this.activeToolRenderer = toolName;
-      //   break;
-      default:
-        console.warn(`Unknown tool: ${toolName}`);
-        this.activeTool = null; // fallback
-    }
+
+    this.activeTool = this.toolMap[toolName];
+    
   }
 
  
   handlePointerDown(view: any, x: number, y: number) {
-    debugger
     this.activeTool?.handlePointerDown?.(view, x, y);
   }
 
@@ -52,8 +46,10 @@ export class ToolManagerService {
   }
 
   validate(){
-    const {id, params, labelSensitive} = this.stepEvaluator.validateConstruction(this.activeToolName);
-    this.activeTool?.validate(id, params, labelSensitive);
+    debugger
+    const {step, labelSensitive} = this.stepEvaluator.validateConstruction(this.activeToolName);
+    debugger
+    this.activeTool?.validate(step, labelSensitive);
   }
 
   check(){

@@ -10,13 +10,19 @@ export class ViewStateService {
   showGrid = true;
   snapToGrid = false;
   gridStep = 1;
-  readonly toleranceFactor = 0.03;
+  readonly toleranceFactor = 0.04;
 
   // ✅ Coordinate system
   screenOriginX = 400; // will be updated dynamically
   screenOriginY = 300; // will be updated dynamically
   screenScaleX = 100; // pixels per real unit in X
   screenScaleY = 100; // pixels per real unit in Y
+
+  worldMinX = -5;
+  worldMaxX = 5;
+  worldMinY = -5;
+  worldMaxY = 5;
+
 
   // ✅ Canvas dimensions (for SVG to sync)
   canvasWidth!: number;
@@ -108,4 +114,13 @@ export class ViewStateService {
   get tolerance(): number {
     return this.gridStep ;
   }
+  getVisibleWorldRange() {
+  const minX = this.toWorldX(0);
+  const maxX = this.toWorldX(this.canvasWidth);
+  const minY = this.toWorldY(this.canvasHeight);
+  const maxY = this.toWorldY(0);
+
+  return { minX, maxX, minY, maxY };
+}
+
 }

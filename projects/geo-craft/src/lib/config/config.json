@@ -1,13 +1,39 @@
-{"config" : {
-  "labelSensitive": false,
-  "steps": [
-    {
-      "id": 1,
-      "tool": "point",
-      "validate": {
-        "coordinate": [1,1]
+{
+  "config": {
+    "labelSensitive": false,
+    "steps": [
+      {
+        "id": 1,
+        "tool": "segment",
+        "data": {
+          "start": {
+            "label": "A",
+            "coordinate": [-1, 0]
+          },
+          "end": {
+            "label": "B",
+            "coordinate": [1, 0]
+          }
+        }
+      },
+      {
+        "id": 2,
+        "tool": "protractor",
+        "data": {
+          "vertex": "A",
+          "angle": 123
+        },
+        "depends": [1]
+      },
+      {
+        "tool": "segment",
+        "length": 2,
+        "data": {
+          "start": { "label": "A" },
+          "end": { "label": "C" }
+        },
+        "depends": [2]
       }
-      
-    }
-  ]
-}}
+    ]
+  }
+}

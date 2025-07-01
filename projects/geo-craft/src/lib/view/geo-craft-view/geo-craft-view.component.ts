@@ -12,6 +12,7 @@ import { ViewStateService } from '../services/view-state.service';
 import { EventLogService } from '../../controller/event-log.service';
 import { ConstructionService } from '../../controller/construction.service';
 import { StepEvaluatorService } from '../../controller/step-evaluator.service';
+import { StepReplayService } from '../../controller/step-replay.service';
 import {config} from "../../config/config.json";
 
 @Component({
@@ -31,7 +32,8 @@ export class GeoCraftViewComponent implements AfterViewInit {
     public viewState: ViewStateService,
     private eventLog: EventLogService,
     private construction: ConstructionService,
-    private stepEvaluator: StepEvaluatorService
+    private stepEvaluator: StepEvaluatorService,
+    private stepReplay: StepReplayService,
   ) {}
 
   ngAfterViewInit() {
@@ -39,6 +41,7 @@ export class GeoCraftViewComponent implements AfterViewInit {
     this.resizeCanvas();
     setTimeout(()=>{
       this.render();
+      this.stepReplay.playAll(config.steps, this);
     },1000)
     
   }
@@ -119,7 +122,9 @@ export class GeoCraftViewComponent implements AfterViewInit {
 
     @HostListener('pointerup', ['$event'])
     onPointerUp(event: PointerEvent) {
+      debugger
       const { wx, wy } = this.getWorldCoordinates(event);
+      debugger
       this.toolManager.handlePointerUp(this, wx, wy);
        this.toolManager.validate();
     }
@@ -154,53 +159,65 @@ export class GeoCraftViewComponent implements AfterViewInit {
     console.log('Construction Elements:', this.construction.getGeoElements());
   }
 
-drawGrid(renderer: CanvasRendererService) {
+  drawGrid(renderer: CanvasRendererService) {
+  const { minX, maxX, minY, maxY } = this.viewState.getVisibleWorldRange();
   const step = this.viewState.gridStep;
   const subStep = step / 5;
-  const range = 10;
+
+  const startX = Math.floor(minX / subStep) * subStep;
+  const endX = Math.ceil(maxX / subStep) * subStep;
+  const startY = Math.floor(minY / subStep) * subStep;
+  const endY = Math.ceil(maxY / subStep) * subStep;
 
   // 1️⃣ Subgrid
   renderer.setStrokeStyle('#eeeeee');
   renderer.setLineWidth(0.5);
-  for (let x = -range; x <= range; x += subStep) {
+  for (let x = startX; x <= endX; x += subStep) {
     const sx = this.toScreenX(x);
-    renderer.drawLine(sx, this.toScreenY(-range), sx, this.toScreenY(range));
+    renderer.drawLine(sx, this.toScreenY(minY), sx, this.toScreenY(maxY));
   }
-  for (let y = -range; y <= range; y += subStep) {
+  for (let y = startY; y <= endY; y += subStep) {
     const sy = this.toScreenY(y);
-    renderer.drawLine(this.toScreenX(-range), sy, this.toScreenX(range), sy);
+    renderer.drawLine(this.toScreenX(minX), sy, this.toScreenX(maxX), sy);
   }
 
   // 2️⃣ Main grid
   renderer.setStrokeStyle('#dddddd');
   renderer.setLineWidth(1.2);
-  for (let x = -range; x <= range; x += step) {
+  for (let x = startX; x <= endX; x += step) {
     const sx = this.toScreenX(x);
-    renderer.drawLine(sx, this.toScreenY(-range), sx, this.toScreenY(range));
+    renderer.drawLine(sx, this.toScreenY(minY), sx, this.toScreenY(maxY));
   }
-  for (let y = -range; y <= range; y += step) {
+  for (let y = startY; y <= endY; y += step) {
     const sy = this.toScreenY(y);
-    renderer.drawLine(this.toScreenX(-range), sy, this.toScreenX(range), sy);
+    renderer.drawLine(this.toScreenX(minX), sy, this.toScreenX(maxX), sy);
   }
 
   // 3️⃣ Axes
   renderer.setStrokeStyle('#000');
   renderer.setLineWidth(1.5);
-  renderer.drawLine(this.toScreenX(0), this.toScreenY(-range), this.toScreenX(0), this.toScreenY(range)); // Y axis
-  renderer.drawLine(this.toScreenX(-range), this.toScreenY(0), this.toScreenX(range), this.toScreenY(0)); // X axis
+  renderer.drawLine(this.toScreenX(0), this.toScreenY(minY), this.toScreenX(0), this.toScreenY(maxY)); // Y axis
+  renderer.drawLine(this.toScreenX(minX), this.toScreenY(0), this.toScreenX(maxX), this.toScreenY(0)); // X axis
 
   // 4️⃣ Labels
   renderer.setFillStyle('#000');
   renderer.setFont('12px sans-serif');
-  for (let x = -range; x <= range; x += step) {
+
+  for (let x = Math.ceil(minX); x <= Math.floor(maxX); x += step) {
     const sx = this.toScreenX(x);
-    renderer.drawText(x.toString(), sx + 2, this.toScreenY(0) + 12);
+    const sy = this.toScreenY(0);
+    renderer.drawText(x.toString(), sx + 2, sy + 12);
   }
-  for (let y = -range; y <= range; y += step) {
-    if (y === 0) continue; // skip origin
+
+  for (let y = Math.ceil(minY); y <= Math.floor(maxY); y += step) {
+    if (Math.abs(y) < 1e-6) continue; // Skip origin
+    const sx = this.toScreenX(0);
     const sy = this.toScreenY(y);
-    renderer.drawText(y.toString(), this.toScreenX(0) + 2, sy - 2);
+    renderer.drawText(y.toString(), sx + 4, sy - 4);
   }
 }
+
+
+
 
 }

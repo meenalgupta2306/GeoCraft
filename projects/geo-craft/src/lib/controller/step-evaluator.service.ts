@@ -41,14 +41,13 @@ export class StepEvaluatorService {
 
       else{
         return {
-          id: step.id,
-          params: step.validate,
+          step,
           labelSensitive: this.config.labelSensitive
         }
       }
     }
     return {
-      params: null,
+      step: null,
       labelSensitive: this.config.labelSensitive
     };
   }

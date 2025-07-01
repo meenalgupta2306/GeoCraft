@@ -64,28 +64,30 @@ export class PointToolService implements Tool {
     view.render();
   }
 
-  validate(stepId: number, params: any, labelSensitive: boolean) {
-    // If no coordinate to compare, accept any point
-    debugger;
-    let isValid;
-    isValid = stepId && !params?.coordinate;
+  validate(step: any, labelSensitive: boolean) {
 
-    if (stepId) {
-      const [x, y] = params?.coordinate;
+    //Skip validation if no id or no coordinate is given (treat as implicitly valid)
+    if(!step.id || !step.data?.coordinate || !step) return ;
 
-      const point = this.construction.getLastGeoElement();
-      const dx = point.x - x;
-      const dy = point.y - y;
-      debugger;
-      const distance = Math.hypot(dx, dy);
+    const { id, data } = step;  
 
-      isValid = distance <= this.viewState.toleranceFactor;
-      if (isValid) {
-        alert('validated');
-        this.stepEvaluator.markStepAsCompleted(stepId);
-      } else {
-        alert('not correct');
-      }
+    const point = this.construction.getLastGeoElement();
+
+    const [x, y] = data.coordinate;
+    const dx = point.x - x;
+    const dy = point.y - y;
+    const distance = Math.hypot(dx, dy);
+    const coordValid = distance <= this.viewState.toleranceFactor;
+
+    const labelValid = labelSensitive ? point.label === data.label : true;
+
+    const isValid = coordValid && labelValid;
+
+    if (isValid) {
+      alert('validated');
+      this.stepEvaluator.markStepAsCompleted(id);
+    } else {
+      alert('not correct');
     }
   }
   getNextLabel(): string {
@@ -95,7 +97,7 @@ export class PointToolService implements Tool {
     let label = String.fromCharCode(65 + index); // A-Z
 
     if (cycle > 0) {
-      label += `'`.repeat(cycle); 
+      label += `'`.repeat(cycle);
     }
 
     this.pointCount++;
