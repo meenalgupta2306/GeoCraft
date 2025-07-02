@@ -8,9 +8,10 @@ import { GeoCraftViewComponent } from '../../view/geo-craft-view/geo-craft-view.
 import { DrawSegment } from '../../drawable/draw-segment';
 import { DrawPoint } from '../../drawable/draw-point';
 import { PointToolService } from './point-tool.service';
+import { StepEvaluatorService } from '../step-evaluator.service';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class SegmentToolService implements Tool {
   private startPoint: Point | null = null;
@@ -23,7 +24,8 @@ export class SegmentToolService implements Tool {
   constructor(
     private constructionService: ConstructionService,
     private viewStateService: ViewStateService,
-    private pointToolService: PointToolService
+    private pointToolService: PointToolService,
+    private stepEvaluator: StepEvaluatorService
   ) {}
 
   handlePointerDown(view: GeoCraftViewComponent, x: number, y: number): void {
@@ -40,7 +42,9 @@ export class SegmentToolService implements Tool {
       this.startPoint = point;
       this.previewStartPoint = new DrawPoint(point);
       this.previewStartPoint.setGlow(true);
-      this.viewStateService.addPreviewDrawable(this.previewStartPoint);
+      this.viewStateService.addPreviewDrawable(
+        this.previewStartPoint
+      );
     } else {
       // Second point: store segment for confirmation on pointerup
       this.endPoint = point;
@@ -53,7 +57,7 @@ export class SegmentToolService implements Tool {
       this.viewStateService.setPreviewDrawables([
         this.previewStartPoint!,
         new DrawSegment(this.segment, true),
-        this.previewEndPoint,
+        this.previewEndPoint
       ]);
     }
 
@@ -62,7 +66,12 @@ export class SegmentToolService implements Tool {
 
   handlePointerUp(view: GeoCraftViewComponent): void {
     // If only one point tapped, do nothing
-    if (!this.segment || !this.previewEndPoint || !this.previewStartPoint)
+    console.log("handlePointerUp");
+    if (
+      !this.segment ||
+      !this.previewEndPoint ||
+      !this.previewStartPoint
+    )
       return;
 
     // Finalize segment
@@ -78,7 +87,7 @@ export class SegmentToolService implements Tool {
     [
       this.previewStartPoint,
       new DrawSegment(this.segment),
-      this.previewEndPoint,
+      this.previewEndPoint
     ].forEach((item) => {
       this.viewStateService.addDrawable(item);
     });
@@ -98,13 +107,61 @@ export class SegmentToolService implements Tool {
     this.viewStateService.clearPreviewDrawables();
   }
 
-  validate() {
-    return true;
+  validate(step: any, labelSensitive: boolean) {
+
+  if (!step?.id || !step.data) return;
+
+  const { id, data, length } = step;
+  const segment = this.constructionService.getLastGeoElement();
+  if (!segment) {
+    return;
   }
+
+  const { start, end } = segment;
+  const epsilon = this.viewStateService.toleranceFactor;
+
+  const coordMatch = (point: any, expected?: number[]) =>
+    !expected || Math.hypot(point.x - expected[0], point.y - expected[1]) <= epsilon;
+
+  const labelMatch = (point: any, expectedLabel?: string) =>
+    !labelSensitive || !expectedLabel || point.label === expectedLabel;
+
+  const expectedStart = data.start?.coordinate;
+  const expectedEnd = data.end?.coordinate;
+  const expectedStartLabel = data.start?.label;
+  const expectedEndLabel = data.end?.label;
+
+  const isMatch = (
+    coordMatch(start, expectedStart) &&
+    coordMatch(end, expectedEnd) &&
+    labelMatch(start, expectedStartLabel) &&
+    labelMatch(end, expectedEndLabel)
+  ) || (
+    coordMatch(start, expectedEnd) &&
+    coordMatch(end, expectedStart) &&
+    labelMatch(start, expectedEndLabel) &&
+    labelMatch(end, expectedStartLabel)
+  );
+
+  let lengthValid = true;
+  if (typeof length === 'number') {
+    const segmentLength = segment.getLength();
+    lengthValid = Math.abs(segmentLength - length) <= epsilon;
+    console.log(`📏 Length check: expected ${length}, got ${segmentLength.toFixed(2)}`);
+  }
+
+  if (isMatch && lengthValid) {
+    alert('✅ Segment validated!');
+    this.stepEvaluator.markStepAsCompleted(id);
+  } else {
+    alert('❌ Segment validation failed.');
+  }
+}
+
   private findNearbyPoint(
     x: number,
     y: number,
-    tolerance = 0.25
+    tolerance = 0.1
   ): Point | null {
     const allPoints = this.constructionService
       .getGeoElements()
