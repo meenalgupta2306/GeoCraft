@@ -27,8 +27,13 @@ export class SegmentToolService implements Tool {
   ) {}
 
   handlePointerDown(view: GeoCraftViewComponent, x: number, y: number): void {
-    const label = this.pointToolService.getNextLabel();
-    const point = new Point(x, y, label);
+    // const label = this.pointToolService.getNextLabel();
+    let point = this.findNearbyPoint(x, y);
+    if (!point) {
+      const label = this.pointToolService.getNextLabel();
+      point = new Point(x, y, label);
+      this.constructionService.addGeoElement(point); // Don't forget to add new point
+    }
 
     if (!this.startPoint) {
       // First point: start a segment
@@ -93,7 +98,26 @@ export class SegmentToolService implements Tool {
     this.viewStateService.clearPreviewDrawables();
   }
 
-  validate(){
+  validate() {
     return true;
+  }
+  private findNearbyPoint(
+    x: number,
+    y: number,
+    tolerance = 0.25
+  ): Point | null {
+    const allPoints = this.constructionService
+      .getGeoElements()
+      .filter((e): e is Point => e instanceof Point);
+
+    for (const pt of allPoints) {
+      const dx = pt.x - x;
+      const dy = pt.y - y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist <= tolerance) {
+        return pt;
+      }
+    }
+    return null;
   }
 }
