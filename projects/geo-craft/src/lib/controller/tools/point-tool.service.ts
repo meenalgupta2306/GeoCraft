@@ -84,10 +84,10 @@ export class PointToolService implements Tool {
     const isValid = coordValid && labelValid;
 
     if (isValid) {
-      alert('validated');
+      //alert('validated');
       this.stepEvaluator.markStepAsCompleted(id);
     } else {
-      alert('not correct');
+      this.viewState.emitmessage(`${!coordValid? 'Let’s check that point again — is it in the right place?': 'The point is perfectly placed! Could the label be different?'}`)
     }
   }
   getNextLabel(): string {

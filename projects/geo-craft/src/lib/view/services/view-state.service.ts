@@ -39,6 +39,9 @@ export class ViewStateService {
   private drawables: any[] = [];
   private previewDrawables: any[] = [];
 
+  errorMessage: Subject<any> = new Subject<String>();
+
+
   constructor() {}
 
   addDrawable(drawable: any) {
@@ -123,4 +126,8 @@ export class ViewStateService {
   return { minX, maxX, minY, maxY };
 }
 
+
+  emitmessage(msg: string) {
+    this.errorMessage.next(msg);
+  }
 }
