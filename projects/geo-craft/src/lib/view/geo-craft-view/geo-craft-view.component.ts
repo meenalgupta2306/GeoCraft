@@ -5,6 +5,8 @@ import {
   ElementRef,
   HostListener,
   AfterViewInit,
+  SimpleChanges,
+  Input
 } from '@angular/core';
 import { CanvasRendererService } from '../services/canvas-renderer.service';
 import { ToolManagerService } from '../../controller/tool-manager.service';
@@ -26,6 +28,15 @@ export class GeoCraftViewComponent implements AfterViewInit {
   private canvas!: HTMLCanvasElement;
 
   private ctx!: CanvasRenderingContext2D;
+  questions= [
+    '1. Plot each of the following points:  (-3, 0)  (3,0)  (1.2, 2.5)',
+    '2. Draw a line segment of length 6.8 cm',
+    '3. Construct an angle of 105 with the help of a protractor',
+    '4. Draw a line segment AB= 5 cm.Construct a line perpendicular to the segment on point A such that AC= 4 cm',
+    '5. Using only a protractor, draw an obtuse angle'
+  ]
+
+  @Input() currentQuestionCount!: number;
 
   constructor(
     public toolManager: ToolManagerService,
@@ -36,6 +47,12 @@ export class GeoCraftViewComponent implements AfterViewInit {
     private stepEvaluator: StepEvaluatorService,
     private stepReplay: StepReplayService
   ) {}
+  ngOnChanges(changes: SimpleChanges) {
+    if(changes["currentQuestionCount"]?.currentValue){
+      this.renderer.clear(this.canvas.width, this.canvas.height);
+      this.drawGrid(this.renderer, this.viewState.showGrid);
+    }
+  }
 
   ngAfterViewInit() {
     this.ctx = this.canvasRef.nativeElement.getContext('2d')!;
@@ -60,7 +77,7 @@ export class GeoCraftViewComponent implements AfterViewInit {
       this.canvas.width,
       this.canvas.height
     );
-    this.stepEvaluator.loadConfig(config);
+    this.stepEvaluator.loadConfig(config[this.currentQuestionCount]);
   }
 
   @HostListener('window:resize')

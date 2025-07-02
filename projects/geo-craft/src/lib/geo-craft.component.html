@@ -17,6 +17,9 @@
 
   <div class="canvas-area flex-grow-1">
     <button (click)="toggle()" class="toggle-btn">open</button>
-    <lib-geo-craft-view></lib-geo-craft-view>
+    <button (click)="next()" style="margin-left: 50px;" class="toggle-btn">next</button>
+    <lib-geo-craft-view
+    [currentQuestionCount]="currentQuestion"
+    ></lib-geo-craft-view>
   </div>
 </div>

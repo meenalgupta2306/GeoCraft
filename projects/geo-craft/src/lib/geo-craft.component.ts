@@ -14,6 +14,7 @@ export class GeoCraftComponent implements OnInit {
   };
 
   openToolBar: boolean = true;
+  currentQuestion = 0;
 
   constructor(
     private viewState: ViewStateService
@@ -25,6 +26,11 @@ export class GeoCraftComponent implements OnInit {
 
   toggle(){
     this.openToolBar = !this.openToolBar;
+  }
+
+  next(){
+    this.currentQuestion ++;
+    if(this.currentQuestion == 5) this.currentQuestion=0;
   }
 
 }
