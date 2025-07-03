@@ -37,7 +37,7 @@ export class ValidationService {
     );
   }
 
-  hasStep(stepId: number): boolean {
+  isStepCompleted(stepId: number): boolean {
     return this.completedStepMap.has(stepId);
   }
 
@@ -72,18 +72,18 @@ export class ValidationService {
     for (const step of pendingSteps) {
       if (step.tool !== tool) continue;
 
-      // ✅ Step 1: Check dependency first
-      const depsMet =
-        !step.depends || step.depends.every((id: number) => this.hasStep(id));
+      // // ✅ Step 1: Check dependency first
+      // const depsMet =
+      //   !step.depends || step.depends.every((id: number) => this.isStepCompleted(id));
 
-      if (!depsMet) {
-        message = 'Dependency not done';
-        this.deferredSteps.set(step.id, {
-          depends: step.depends || [],
-          geoIndex: lastIndex,
-        });
-        continue;
-      }
+      // if (!depsMet) {
+      //   message = 'Dependency not done';
+      //   this.deferredSteps.set(step.id, {
+      //     depends: step.depends || [],
+      //     geoIndex: lastIndex,
+      //   });
+      //   continue;
+      // }
 
       // ✅ Step 2: Validate only if deps are satisfied
       const result = toolService.validate(
@@ -91,20 +91,36 @@ export class ValidationService {
         lastElement,
         this.config.labelSensitive
       );
+      const depsMet =
+        !step.depends || step.depends.every((id: number) => this.isStepCompleted(id));
 
-      if (result.matched && depsMet) {
-        this.markStepAsCompleted(step.id, lastIndex);
-        this.deferredSteps.delete(step.id);
+      if (!depsMet && !this.deferredSteps.has(step.id)) {
+        message = 'Dependency not done';
+        this.deferredSteps.set(step.id, {
+          depends: step.depends || [],
+          geoIndex: lastIndex,
+        });
+        continue;
+      }
+      if (result.matched) {
+        if (depsMet) {
+          this.markStepAsCompleted(step.id, lastIndex);
+          this.deferredSteps.delete(step.id);
 
-        debugger;
-        // ✅ Step 3: Validate previously deferred steps depending on this
-        deferredResult = this.validateDeferedSteps(step.id);
+          debugger;
+          // ✅ Step 3: Validate previously deferred steps
+          deferredResult = this.validateDeferedSteps(step.id);
 
-        flag = true;
-        message = deferredResult?.reason || null;
+          flag = true;
+          message = deferredResult?.reason || null;
 
-        break; // Done with current element
-      } else if (depsMet) {
+          break; // Done with current element
+        }
+      } else {
+        this.deferredSteps.set(step.id, {
+          depends: step.depends || [],
+          geoIndex: lastIndex,
+        });
         message = result.reason;
       }
     }
@@ -129,7 +145,7 @@ export class ValidationService {
       debugger;
       if (!info.depends.includes(currentValidatedStepId)) continue;
 
-      const depsNowMet = info.depends.every((id) => this.hasStep(id));
+      const depsNowMet = info.depends.every((id) => this.isStepCompleted(id));
       if (!depsNowMet) continue;
 
       const element = this.constructionService.getGeoElements()[info.geoIndex];
@@ -164,7 +180,7 @@ export class ValidationService {
 
         //check all dependencies are completed
         const depsMet =
-          !step.depends || step.depends.every((id: number) => this.hasStep(id));
+          !step.depends || step.depends.every((id: number) => this.isStepCompleted(id));
 
         //continue to next if dependencies are not done
 
@@ -210,7 +226,7 @@ export class ValidationService {
     for (const [stepId, info] of this.deferredSteps) {
       if (!info.depends.includes(completedStepId)) continue;
 
-      const depsNowMet = info.depends.every((id) => this.hasStep(id));
+      const depsNowMet = info.depends.every((id) => this.isStepCompleted(id));
       if (!depsNowMet) continue;
 
       const element = this.constructionService.getGeoElements()[info.geoIndex];
