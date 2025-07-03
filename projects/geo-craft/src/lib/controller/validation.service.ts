@@ -72,18 +72,18 @@ export class ValidationService {
     for (const step of pendingSteps) {
       if (step.tool !== tool) continue;
 
-      // // ✅ Step 1: Check dependency first
-      // const depsMet =
-      //   !step.depends || step.depends.every((id: number) => this.hasStep(id));
+      // ✅ Step 1: Check dependency first
+      const depsMet =
+        !step.depends || step.depends.every((id: number) => this.hasStep(id));
 
-      // if (!depsMet) {
-      //   message = 'Dependency not done';
-      //   this.deferredSteps.set(step.id, {
-      //     depends: step.depends || [],
-      //     geoIndex: lastIndex,
-      //   });
-      //   continue;
-      // }
+      if (!depsMet) {
+        message = 'Dependency not done';
+        this.deferredSteps.set(step.id, {
+          depends: step.depends || [],
+          geoIndex: lastIndex,
+        });
+        continue;
+      }
 
       // ✅ Step 2: Validate only if deps are satisfied
       const result = toolService.validate(
@@ -92,36 +92,19 @@ export class ValidationService {
         this.config.labelSensitive
       );
 
-      if (result.matched) {
-        const depsMet =
-          !step.depends || step.depends.every((id: number) => this.hasStep(id));
+      if (result.matched && depsMet) {
+        this.markStepAsCompleted(step.id, lastIndex);
+        this.deferredSteps.delete(step.id);
 
-        if (!depsMet) {
-          message = 'Dependency not done';
-          this.deferredSteps.set(step.id, {
-            depends: step.depends || [],
-            geoIndex: lastIndex,
-          });
-          continue;
-        }
-        if (depsMet) {
-          this.markStepAsCompleted(step.id, lastIndex);
-          this.deferredSteps.delete(step.id);
+        debugger;
+        // ✅ Step 3: Validate previously deferred steps depending on this
+        deferredResult = this.validateDeferedSteps(step.id);
 
-          debugger;
-          // ✅ Step 3: Validate previously deferred steps depending on this
-          deferredResult = this.validateDeferedSteps(step.id);
+        flag = true;
+        message = deferredResult?.reason || null;
 
-          flag = true;
-          message = deferredResult?.reason || null;
-
-          break; // Done with current element
-        }
-      } else {
-        this.deferredSteps.set(step.id, {
-            depends: step.depends || [],
-            geoIndex: lastIndex,
-          });
+        break; // Done with current element
+      } else if (depsMet) {
         message = result.reason;
       }
     }
