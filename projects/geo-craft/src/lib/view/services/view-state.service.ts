@@ -39,7 +39,7 @@ export class ViewStateService {
   private drawables: any[] = [];
   private previewDrawables: any[] = [];
 
-  errorMessage: Subject<any> = new Subject<String>();
+  errorMessage: Subject<any> = new Subject<String | null>();
 
 
   constructor() {}
@@ -127,7 +127,8 @@ export class ViewStateService {
 }
 
 
-  emitmessage(msg: string) {
+  emitmessage(msg: string | null) {
+    debugger
     this.errorMessage.next(msg);
   }
 }

@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-import { Tool } from './tools-interface';
+import { Tool } from '../interfaces/tools-interface';
 import { Point } from '../../model/point';
 import { DrawPoint } from '../../drawable/draw-point';
 import { ConstructionService } from '../construction.service';
 import { EventLogService } from '../event-log.service';
 import { ViewStateService } from '../../view/services/view-state.service';
 import { GeoCraftViewComponent } from '../../view/geo-craft-view/geo-craft-view.component';
-import { StepEvaluatorService } from '../step-evaluator.service';
 import { ToolManagerService } from '../tool-manager.service';
+import { ValidationResult } from '../interfaces/validationResult-interface';
 
 @Injectable({
   providedIn: 'root',
@@ -21,8 +21,7 @@ export class PointToolService implements Tool {
   constructor(
     private construction: ConstructionService,
     private eventLog: EventLogService,
-    private viewState: ViewStateService,
-    private stepEvaluator: StepEvaluatorService
+    private viewState: ViewStateService
   ) {}
 
   private pointExists(x: number, y: number): boolean {
@@ -64,31 +63,40 @@ export class PointToolService implements Tool {
     view.render();
   }
 
-  validate(step: any, labelSensitive: boolean) {
+  validate(
+    step: any,
+    geoElement: any,
+    labelSensitive: boolean
+  ): ValidationResult {
+    const { coordinate, label } = step.data;
 
-    //Skip validation if no id or no coordinate is given (treat as implicitly valid)
-    if(!step?.id || !step?.data?.coordinate || !step) return ;
+    // 1. Coordinate check (only if provided)
+    if (coordinate) {
+      const dx = geoElement.x - coordinate[0];
+      const dy = geoElement.y - coordinate[1];
+      const distance = Math.hypot(dx, dy);
+      const coordValid = distance <= this.viewState.toleranceFactor;
 
-    const { id, data } = step;  
-
-    const point = this.construction.getLastGeoElement();
-
-    const [x, y] = data.coordinate;
-    const dx = point.x - x;
-    const dy = point.y - y;
-    const distance = Math.hypot(dx, dy);
-    const coordValid = distance <= this.viewState.toleranceFactor;
-
-    const labelValid = labelSensitive ? point.label === data.label : true;
-
-    const isValid = coordValid && labelValid;
-
-    if (isValid) {
-      //alert('validated');
-      this.stepEvaluator.markStepAsCompleted(id);
-    } else {
-      this.viewState.emitmessage(`${!coordValid? 'Let’s check that point again — is it in the right place?': 'The point is perfectly placed! Could the label be different?'}`)
+      if (!coordValid) {
+        return {
+          matched: false,
+          reason: `Let’s check that point ${geoElement.label} again — is it in the right place?`,
+        };
+      }
     }
+
+    // 2. Label check
+    if (labelSensitive) {
+      const labelValid = geoElement.label === label;
+      if (!labelValid) {
+        return {
+          matched: false,
+          reason:
+            'The point is perfectly placed! Could the label be different?',
+        };
+      }
+    }
+    return { matched: true };
   }
   getNextLabel(): string {
     const cycle = Math.floor(this.pointCount / 26);

@@ -22,7 +22,6 @@ export class GeoCraftComponent implements OnInit {
   ngOnInit(): void {
     this.viewState.setCanvasConfig(this.config);
     this.viewState.errorMessage.subscribe((msg) => {
-      debugger;
       this.validationMessage.emit(msg);
     });
   }

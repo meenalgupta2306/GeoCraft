@@ -37,7 +37,6 @@ export class StepReplayService {
       const startPoint = this.getOrAssumePoint(start);
       let endPoint = this.getOrAssumePoint(end);
 
-      debugger
       // If this segment depends on an angle (e.g. from protractor)
       if (step.depends?.length && step.length && !end.coordinate) {
         const protractorStepId = step.depends.find((id: number) =>

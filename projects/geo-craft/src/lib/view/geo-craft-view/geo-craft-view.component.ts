@@ -13,8 +13,8 @@ import { ToolManagerService } from '../../controller/tool-manager.service';
 import { ViewStateService } from '../services/view-state.service';
 import { EventLogService } from '../../controller/event-log.service';
 import { ConstructionService } from '../../controller/construction.service';
-import { StepEvaluatorService } from '../../controller/step-evaluator.service';
 import { StepReplayService } from '../../controller/step-replay.service';
+import { ValidationService } from '../../controller/validation.service';
 import { config } from '../../config/config.json';
 
 @Component({
@@ -44,7 +44,7 @@ export class GeoCraftViewComponent implements AfterViewInit {
     public viewState: ViewStateService,
     private eventLog: EventLogService,
     private construction: ConstructionService,
-    private stepEvaluator: StepEvaluatorService,
+    private validatiomService: ValidationService,
     private stepReplay: StepReplayService
   ) {}
   ngOnChanges(changes: SimpleChanges) {
@@ -77,7 +77,7 @@ export class GeoCraftViewComponent implements AfterViewInit {
       this.canvas.width,
       this.canvas.height
     );
-    this.stepEvaluator.loadConfig(config[this.currentQuestionCount]);
+    this.validatiomService.loadConfig(config[this.currentQuestionCount]);
   }
 
   @HostListener('window:resize')
@@ -139,11 +139,11 @@ export class GeoCraftViewComponent implements AfterViewInit {
 
   @HostListener('pointerup', ['$event'])
   onPointerUp(event: PointerEvent) {
-    debugger;
+    debugger
     const { wx, wy } = this.getWorldCoordinates(event);
-    debugger;
     this.toolManager.handlePointerUp(this, wx, wy);
-    this.toolManager.validate();
+    // this.toolManager.validate();
+    this.validatiomService.startValidation();
   }
 
   // @HostListener('pointermove', ['$event'])

@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 
-import { Tool } from './tools/tools-interface';
+import { Tool } from './interfaces/tools-interface';
 import { PointToolService } from './tools/point-tool.service';
 import { SegmentToolService } from './tools/segment-tool.service';
-import { StepEvaluatorService } from './step-evaluator.service';
 
 @Injectable({
   providedIn: 'root',
@@ -19,7 +18,6 @@ export class ToolManagerService {
   constructor(
     private pointTool: PointToolService,
     private segmentTool: SegmentToolService,
-    private stepEvaluator: StepEvaluatorService
   ) {
     this.toolMap = {
       point: this.pointTool,
@@ -41,12 +39,12 @@ export class ToolManagerService {
     this.activeTool?.handlePointerUp?.(view, x, y);
   }
 
-  validate() {
-    const { step, labelSensitive } = this.stepEvaluator.validateConstruction(
-      this.activeToolName
-    );
-    this.activeTool?.validate(step, labelSensitive);
-  }
+  // validate() {
+  //   const { step, labelSensitive } = this.stepEvaluator.validateConstruction(
+  //     this.activeToolName
+  //   );
+  //   this.activeTool?.validate(step, labelSensitive);
+  // }
 
   check() {}
 }

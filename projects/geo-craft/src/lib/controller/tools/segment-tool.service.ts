@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Tool } from './tools-interface';
+import { Tool } from '../interfaces/tools-interface';
 import { Point } from '../../model/point';
 import { ConstructionService } from '../construction.service';
 import { ViewStateService } from '../../view/services/view-state.service';
@@ -8,6 +8,7 @@ import { GeoCraftViewComponent } from '../../view/geo-craft-view/geo-craft-view.
 import { DrawSegment } from '../../drawable/draw-segment';
 import { DrawPoint } from '../../drawable/draw-point';
 import { PointToolService } from './point-tool.service';
+import { ValidationResult } from '../interfaces/validationResult-interface';
 
 @Injectable({
   providedIn: 'root',
@@ -98,8 +99,14 @@ export class SegmentToolService implements Tool {
     this.viewStateService.clearPreviewDrawables();
   }
 
-  validate() {
-    return true;
+  validate(
+      step: any,
+      geoElement: any,
+      labelSensitive: boolean
+    ): ValidationResult {
+    return {
+      matched: true
+    };
   }
   private findNearbyPoint(
     x: number,
