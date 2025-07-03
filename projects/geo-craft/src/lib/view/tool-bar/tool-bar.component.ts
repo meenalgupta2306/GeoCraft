@@ -4,29 +4,39 @@ import { ViewStateService } from '../services/view-state.service';
 @Component({
   selector: 'lib-tool-bar',
   templateUrl: './tool-bar.component.html',
-  styleUrls: ['./tool-bar.component.scss']
+  styleUrls: ['./tool-bar.component.scss'],
 })
 export class ToolBarComponent implements OnInit {
-
   tools = [
-    {id: 1, name: 'point', 'label': 'Point', icon: ''},
-    {id: 2, name: 'segment', 'label': 'Segment', icon: ''},
-    {id: 3, name: 'compass', 'label': 'Compass', icon: ''},
-    {id: 4 , name: 'protractor', 'label': 'Protractor', icon: ''},
-  ]
-
+    { id: 1, name: 'point', label: 'Point', icon: 'radio_button_checked' },
+    {
+      id: 2,
+      name: 'segment',
+      label: 'Segment',
+      icon: 'diagonal_line',
+    },
+    {
+      id: 3,
+      name: 'compass',
+      label: 'Compass',
+      icon: 'architecture',
+    },
+    {
+      id: 4,
+      name: 'protractor',
+      label: 'Protractor',
+      icon: 'looks',
+    },
+  ];
 
   constructor(
-    private toolManager: ToolManagerService,
+    public toolManager: ToolManagerService,
     public viewState: ViewStateService
-  ) { }
+  ) {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   selectTool(toolName: string) {
-     this.toolManager.setActiveTool(toolName);
-  } 
-  
-
+    this.toolManager.setActiveTool(toolName);
+  }
 }

@@ -9,9 +9,9 @@ import { SegmentToolService } from './tools/segment-tool.service';
 })
 export class ToolManagerService {
   private activeTool: Tool | null = null;
-
-  public activeToolRenderer: any;
   public activeToolName: any;
+
+  public renderedToolSet = new Set<string>();
 
   public toolMap: Record<string, Tool>;
 
@@ -26,9 +26,36 @@ export class ToolManagerService {
   }
 
   setActiveTool(toolName: string) {
+    if (this.activeToolName === toolName) {
+      if (this.toolMap[toolName]) {
+        this.activeTool = null;
+        this.activeToolName = null;
+      }
+      if (['protractor', 'compass'].includes(toolName)) {
+        this.hideTool(toolName);
+        this.activeToolName = null;
+      }
+      return;
+    }
     this.activeToolName = toolName;
+    if (this.toolMap[toolName]) {
+      this.activeTool = this.toolMap[toolName];
+    }
+    if (['protractor', 'compass'].includes(toolName)) {
+      this.renderedToolSet.add(toolName);
+    }
+  }
 
-    this.activeTool = this.toolMap[toolName];
+  isToolRendered(toolName: string): boolean {
+    return this.renderedToolSet.has(toolName);
+  }
+
+  hideTool(toolName: string) {
+    this.renderedToolSet.delete(toolName);
+  }
+
+  getRenderedTools(): string[] {
+    return Array.from(this.renderedToolSet);
   }
 
   handlePointerDown(view: any, x: number, y: number) {
@@ -37,6 +64,7 @@ export class ToolManagerService {
 
   handlePointerUp(view: any, x: number, y: number) {
     this.activeTool?.handlePointerUp?.(view, x, y);
+    this.validate();
   }
 
   // validate() {
