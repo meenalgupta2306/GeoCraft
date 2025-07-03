@@ -1,4 +1,5 @@
 export class Point {
+    readonly tool = "point";
     x: number;
     y: number;
     label: string;

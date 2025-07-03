@@ -2,6 +2,7 @@ import { Point } from './point';
 
 
 export class LineSegment {
+  readonly tool = "segment";
     constructor(
     public start: Point,
     public end: Point

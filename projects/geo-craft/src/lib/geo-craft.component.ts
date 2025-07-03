@@ -1,7 +1,7 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { ViewStateService } from './view/services/view-state.service';
 import { config } from '../lib/config/config.json';
-import { StepEvaluatorService } from './controller/step-evaluator.service';
+import { ValidationService } from './controller/validation.service';
 
 @Component({
   selector: 'lib-geo-craft',
@@ -9,6 +9,7 @@ import { StepEvaluatorService } from './controller/step-evaluator.service';
   styleUrls: ['./geo-craft.component.scss'],
 })
 export class GeoCraftComponent implements OnInit {
+  @Output() validationMessage = new EventEmitter<string>();
   config = {
     showGrid: true,
     snapToGrid: true,
@@ -28,11 +29,14 @@ export class GeoCraftComponent implements OnInit {
 
   constructor(
     private viewState: ViewStateService,
-    private stepEvaluator: StepEvaluatorService
+    private validationService: ValidationService
   ) {}
 
   ngOnInit(): void {
     this.viewState.setCanvasConfig(this.config);
+    this.viewState.errorMessage.subscribe((msg) => {
+      this.validationMessage.emit(msg);
+    });
   }
 
   toggle() {
@@ -42,6 +46,6 @@ export class GeoCraftComponent implements OnInit {
   next() {
     this.currentQuestion++;
     if (this.currentQuestion == 5) this.currentQuestion = 0;
-    this.stepEvaluator.loadConfig(config[this.currentQuestion]);
+    this.validationService.loadConfig(config[this.currentQuestion]);
   }
 }
