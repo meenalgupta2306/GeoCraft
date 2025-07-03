@@ -11,7 +11,7 @@ import { PointToolService } from './point-tool.service';
 import { StepEvaluatorService } from '../step-evaluator.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SegmentToolService implements Tool {
   private startPoint: Point | null = null;
@@ -42,9 +42,7 @@ export class SegmentToolService implements Tool {
       this.startPoint = point;
       this.previewStartPoint = new DrawPoint(point);
       this.previewStartPoint.setGlow(true);
-      this.viewStateService.addPreviewDrawable(
-        this.previewStartPoint
-      );
+      this.viewStateService.addPreviewDrawable(this.previewStartPoint);
     } else {
       // Second point: store segment for confirmation on pointerup
       this.endPoint = point;
@@ -57,7 +55,7 @@ export class SegmentToolService implements Tool {
       this.viewStateService.setPreviewDrawables([
         this.previewStartPoint!,
         new DrawSegment(this.segment, true),
-        this.previewEndPoint
+        this.previewEndPoint,
       ]);
     }
 
@@ -66,12 +64,8 @@ export class SegmentToolService implements Tool {
 
   handlePointerUp(view: GeoCraftViewComponent): void {
     // If only one point tapped, do nothing
-    console.log("handlePointerUp");
-    if (
-      !this.segment ||
-      !this.previewEndPoint ||
-      !this.previewStartPoint
-    )
+    console.log('handlePointerUp');
+    if (!this.segment || !this.previewEndPoint || !this.previewStartPoint)
       return;
 
     // Finalize segment
@@ -87,7 +81,7 @@ export class SegmentToolService implements Tool {
     [
       this.previewStartPoint,
       new DrawSegment(this.segment),
-      this.previewEndPoint
+      this.previewEndPoint,
     ].forEach((item) => {
       this.viewStateService.addDrawable(item);
     });
@@ -109,60 +103,94 @@ export class SegmentToolService implements Tool {
 
   validate(step: any, labelSensitive: boolean) {
 
-  if (!step?.id || !step.data) return;
+    if (!step?.id || !step.data) return;
 
-  const { id, data, length } = step;
-  const segment = this.constructionService.getLastGeoElement();
-  if (!segment) {
-    return;
+    const { id, data, length } = step;
+    const segment = this.constructionService.getLastGeoElement();
+    if (!segment) {
+      return;
+    }
+
+    const { start, end } = segment;
+    const epsilon = this.viewStateService.toleranceFactor;
+
+    const coordMatch = (point: any, expected?: number[]) =>
+      !expected ||
+      Math.hypot(point.x - expected[0], point.y - expected[1]) <= epsilon;
+
+    const labelMatch = (point: any, expectedLabel?: string) =>
+      !labelSensitive || !expectedLabel || point.label === expectedLabel;
+
+    const expectedStart = data.start?.coordinate;
+    const expectedEnd = data.end?.coordinate;
+    const expectedStartLabel = data.start?.label;
+    const expectedEndLabel = data.end?.label;
+
+    const isMatch =
+      (coordMatch(start, expectedStart) &&
+        coordMatch(end, expectedEnd) &&
+        labelMatch(start, expectedStartLabel) &&
+        labelMatch(end, expectedEndLabel)) ||
+      (coordMatch(start, expectedEnd) &&
+        coordMatch(end, expectedStart) &&
+        labelMatch(start, expectedEndLabel) &&
+        labelMatch(end, expectedStartLabel));
+
+    let lengthValid = true;
+    if (typeof length === 'number') {
+      const segmentLength = segment.getLength();
+      lengthValid = Math.abs(segmentLength - length) <= epsilon;
+      console.log(
+        `📏 Length check: expected ${length}, got ${segmentLength.toFixed(2)}`
+      );
+    }
+
+    let angleValid = true;
+    if (data.angle !== undefined) {
+      //logic after fetching the segment needed by the dependency factor of the config.
+    }
+
+    const isValid = isMatch && lengthValid && angleValid;
+
+    if (isValid) {
+      alert('✅ Segment validated!');
+      this.stepEvaluator.markStepAsCompleted(id);
+    } else {
+      alert('❌ Segment validation failed.');
+    }
   }
 
-  const { start, end } = segment;
-  const epsilon = this.viewStateService.toleranceFactor;
+  computeAngleBetweenSegments(seg1: any, seg2: any, angle: any, operator: any) {
+    const dx1 = seg1.end.x - seg1.start.x;
+    const dy1 = seg1.end.y - seg1.start.y;
+    const dx2 = seg2.end.x - seg2.start.x;
+    const dy2 = seg2.end.y - seg2.start.y;
 
-  const coordMatch = (point: any, expected?: number[]) =>
-    !expected || Math.hypot(point.x - expected[0], point.y - expected[1]) <= epsilon;
+    const dot = dx1 * dx2 + dy1 * dy2;
+    const mag1 = Math.hypot(dx1, dy1);
+    const mag2 = Math.hypot(dx2, dy2);
+    const cosTheta = dot / (mag1 * mag2);
 
-  const labelMatch = (point: any, expectedLabel?: string) =>
-    !labelSensitive || !expectedLabel || point.label === expectedLabel;
-
-  const expectedStart = data.start?.coordinate;
-  const expectedEnd = data.end?.coordinate;
-  const expectedStartLabel = data.start?.label;
-  const expectedEndLabel = data.end?.label;
-
-  const isMatch = (
-    coordMatch(start, expectedStart) &&
-    coordMatch(end, expectedEnd) &&
-    labelMatch(start, expectedStartLabel) &&
-    labelMatch(end, expectedEndLabel)
-  ) || (
-    coordMatch(start, expectedEnd) &&
-    coordMatch(end, expectedStart) &&
-    labelMatch(start, expectedEndLabel) &&
-    labelMatch(end, expectedStartLabel)
-  );
-
-  let lengthValid = true;
-  if (typeof length === 'number') {
-    const segmentLength = segment.getLength();
-    lengthValid = Math.abs(segmentLength - length) <= epsilon;
-    console.log(`📏 Length check: expected ${length}, got ${segmentLength.toFixed(2)}`);
+    const angleRad = Math.acos(Math.max(-1, Math.min(1, cosTheta)));
+    const degree = (angleRad * 180) / Math.PI;
+    let angleValid = true;
+    switch (operator) {
+      case '=':
+        angleValid = Math.abs(degree - angle) <= 2;
+        break;
+      case '>':
+        angleValid = degree > angle;
+        break;
+      case '<':
+        angleValid = degree < angle;
+        break;
+      default:
+        angleValid = true;
+    }
+    return angleValid;
   }
 
-  if (isMatch && lengthValid) {
-    alert('✅ Segment validated!');
-    this.stepEvaluator.markStepAsCompleted(id);
-  } else {
-    alert('❌ Segment validation failed.');
-  }
-}
-
-  private findNearbyPoint(
-    x: number,
-    y: number,
-    tolerance = 0.1
-  ): Point | null {
+  private findNearbyPoint(x: number, y: number, tolerance = 0.1): Point | null {
     const allPoints = this.constructionService
       .getGeoElements()
       .filter((e): e is Point => e instanceof Point);
