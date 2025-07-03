@@ -1,9 +1,12 @@
-<button
-  *ngFor="let tool of tools"
-  (click)="selectTool(tool.name)"
-  class="tool-buttons"
->
-  {{ tool.label }}
-</button>
-
-
+<div class="toolbar-container">
+  <button
+    *ngFor="let tool of tools"
+    (click)="selectTool(tool.name)"
+    class="tool-button"
+    [title]="tool.label"
+    [class.active]="toolManager.activeToolName === tool.name"
+    [class.visible]="toolManager.isToolRendered(tool.name)"
+  >
+    <span class="material-symbols-outlined"> {{ tool.icon }}</span>
+  </button>
+</div>

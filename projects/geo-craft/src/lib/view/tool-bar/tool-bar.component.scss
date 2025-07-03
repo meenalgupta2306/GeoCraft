@@ -1,5 +1,33 @@
-.tool-buttons {
+.toolbar-container {
   display: flex;
-  margin-top: 5px;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tool-button {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  font-size: 1rem;
   cursor: pointer;
+  background-color: transparent;
+
+  &.active {
+    background-color: #007bff;
+    color: white;
+  }
+
+  &.visible:not(.active) {
+    background-color: #e0e0e0;
+    color: black;
+  }
+
+  transition: background 0.2s;
+
+  &:hover {
+    background-color: #dcdcdc;
+  }
 }

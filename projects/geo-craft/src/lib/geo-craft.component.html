@@ -10,16 +10,30 @@
     </div>
   </div>
 </div> -->
-<div class="d-flex h-100">
-  <div *ngIf="openToolBar" class="sidebar">
-    <lib-tool-bar></lib-tool-bar>
+<link
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+  rel="stylesheet"
+/>
+<div class="geo-craft-wrapper">
+  <div class="question-bar">
+    <h5>
+      <b>{{ questions[currentQuestion] }}</b>
+    </h5>
+    <div class="question-controls">
+      <button (click)="toggle()" class="icon-btn" title="Toggle Toolbar">
+        ☰
+      </button>
+      <button (click)="next()" class="icon-btn" title="Next Question">▶</button>
+    </div>
   </div>
-
-  <div class="canvas-area flex-grow-1">
-    <button (click)="toggle()" class="toggle-btn">open</button>
-    <button (click)="next()" style="margin-left: 50px;" class="toggle-btn">next</button>
-    <lib-geo-craft-view
-    [currentQuestionCount]="currentQuestion"
-    ></lib-geo-craft-view>
+  <div class="main-body">
+    <div [ngClass]="{ sidebar: true, collapsed: !openToolBar }">
+      <lib-tool-bar *ngIf="openToolBar"></lib-tool-bar>
+    </div>
+    <div class="canvas-area">
+      <lib-geo-craft-view
+        [currentQuestionCount]="currentQuestion"
+      ></lib-geo-craft-view>
+    </div>
   </div>
 </div>
