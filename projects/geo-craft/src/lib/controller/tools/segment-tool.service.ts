@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { Tool } from '../interfaces/tools-interface';
 import { Point } from '../../model/point';
 import { ConstructionService } from '../construction.service';
@@ -9,6 +9,7 @@ import { DrawSegment } from '../../drawable/draw-segment';
 import { DrawPoint } from '../../drawable/draw-point';
 import { PointToolService } from './point-tool.service';
 import { ValidationResult } from '../interfaces/validationResult-interface';
+import { ValidationService } from '../validation.service';
 
 @Injectable({
   providedIn: 'root',
@@ -17,6 +18,7 @@ export class SegmentToolService implements Tool {
   private startPoint: Point | null = null;
   private endPoint: Point | null = null;
   private segment: LineSegment | null = null;
+  private _validationService?: ValidationService;
 
   private previewStartPoint: DrawPoint | null = null;
   private previewEndPoint: DrawPoint | null = null;
@@ -24,8 +26,16 @@ export class SegmentToolService implements Tool {
   constructor(
     private constructionService: ConstructionService,
     private viewStateService: ViewStateService,
-    private pointToolService: PointToolService
+    private pointToolService: PointToolService,
+    private injector: Injector
   ) {}
+
+  private get validationService(): ValidationService {
+    if (!this._validationService) {
+      this._validationService = this.injector.get(ValidationService);
+    }
+    return this._validationService;
+  }
 
   handlePointerDown(view: GeoCraftViewComponent, x: number, y: number): void {
     // const label = this.pointToolService.getNextLabel();
@@ -100,14 +110,109 @@ export class SegmentToolService implements Tool {
   }
 
   validate(
-      step: any,
-      geoElement: any,
-      labelSensitive: boolean
-    ): ValidationResult {
-    return {
-      matched: true
-    };
+    step: any,
+    geoElement: any,
+    labelSensitive: boolean
+  ): ValidationResult {
+    debugger;
+    if (!step?.id || !step.data) {
+      return {
+        matched: false,
+        reason: `No segment found`,
+      };
+    }
+
+    const { id, data } = step;
+    if (!geoElement) {
+      return {
+        matched: false,
+        reason: `No segment found`,
+      };
+    }
+
+    const { start, end } = geoElement;
+    const epsilon = this.viewStateService.toleranceFactor;
+
+    const coordMatch = (point: any, expected?: number[]) =>
+      !expected ||
+      Math.hypot(point.x - expected[0], point.y - expected[1]) <= epsilon;
+
+    const labelMatch = (point: any, expectedLabel?: string) =>
+      !labelSensitive || !expectedLabel || point.label === expectedLabel;
+
+    const expectedStart = data.start?.coordinate;
+    const expectedEnd = data.end?.coordinate;
+    const expectedStartLabel = data.start?.label;
+    const expectedEndLabel = data.end?.label;
+
+    const isMatch =
+      (coordMatch(start, expectedStart) &&
+        coordMatch(end, expectedEnd) &&
+        labelMatch(start, expectedStartLabel) &&
+        labelMatch(end, expectedEndLabel)) ||
+      (coordMatch(start, expectedEnd) &&
+        coordMatch(end, expectedStart) &&
+        labelMatch(start, expectedEndLabel) &&
+        labelMatch(end, expectedStartLabel));
+
+    let lengthValid = true;
+    if (typeof data.length === 'number') {
+      const segmentLength = geoElement.getLength();
+      lengthValid = Math.abs(segmentLength - data.length) <= epsilon;
+      console.log(
+        `📏 Length check: expected ${data.length}, got ${segmentLength.toFixed(2)}`
+      );
+    }
+
+    let angleValid = true;
+    if (data.angle !== undefined) {
+      //logic after fetching the segment needed by the dependency factor of the config.
+    }
+
+    const isValid = isMatch && lengthValid && angleValid;
+
+    if (isValid) {
+      return {
+        matched: true,
+      };
+    } else {
+      return {
+        matched: false,
+        reason: `Segment is not appropriate`,
+      };
+    }
   }
+
+  computeAngleBetweenSegments(seg1: any, seg2: any, angle: any, operator: any) {
+    const dx1 = seg1.end.x - seg1.start.x;
+    const dy1 = seg1.end.y - seg1.start.y;
+    const dx2 = seg2.end.x - seg2.start.x;
+    const dy2 = seg2.end.y - seg2.start.y;
+
+    const dot = dx1 * dx2 + dy1 * dy2;
+    const mag1 = Math.hypot(dx1, dy1);
+    const mag2 = Math.hypot(dx2, dy2);
+    const cosTheta = dot / (mag1 * mag2);
+
+    const angleRad = Math.acos(Math.max(-1, Math.min(1, cosTheta)));
+    const degree = (angleRad * 180) / Math.PI;
+    let angleValid = true;
+    switch (operator) {
+      case '=':
+        angleValid = Math.abs(degree - angle) <= 2;
+        break;
+      case '>':
+        angleValid = degree > angle;
+        break;
+      case '<':
+        angleValid = degree < angle;
+        break;
+      default:
+        angleValid = true;
+    }
+    return angleValid;
+  }
+  
   private findNearbyPoint(
     x: number,
     y: number,
