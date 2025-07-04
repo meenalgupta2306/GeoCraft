@@ -1,0 +1,171 @@
+import { Injectable, Injector } from '@angular/core';
+import { PassiveTool } from '../interfaces/tools-interface';
+import { ValidationResult } from '../interfaces/validationResult-interface';
+import { ViewStateService } from '../../view/services/view-state.service';
+import { ValidationService } from '../validation.service';
+import { Protractor } from '../../model/protractor';
+import { ConstructionService } from '../construction.service';
+import { LineSegment } from '../../model/segment';
+
+export interface BlockingRegion {
+  contains: (x: number, y: number) => boolean;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class ProtractorToolService implements PassiveTool {
+  private validationService!: ValidationService;
+  private locked: boolean = false;
+  private blockingRegions: BlockingRegion[] = [];
+
+  constructor(
+    private viewState: ViewStateService,
+    private injector: Injector,
+    private constructionService: ConstructionService
+  ) {
+    setTimeout(() => {
+      this.validationService = this.injector.get(ValidationService);
+    });
+  }
+
+  validate(
+    step: any,
+    geoElement: Protractor,
+    labelSensitive: boolean
+  ): ValidationResult {
+    if (!this.validationService) {
+      return {
+        matched: false,
+        reason: 'Validation service not initialized yet',
+      };
+    }
+    if (!step?.id || !step?.data?.vertex) {
+      return { matched: false, reason: 'Step config is invalid' };
+    }
+    const depends = step.depends || [];
+    const protractorCenter = geoElement.center;
+    const step1 = this.validationService.getGeoElementByStepId(depends[0]);
+
+    let vertexPoint: any = null;
+    let otherPoint: any = null;
+
+    if (labelSensitive) {
+      const vertex = step.data;
+      vertexPoint = this.getPointByLabelFromStepElement(step1, vertex);
+      if (!vertexPoint) {
+        return {
+          matched: false,
+          reason: `Vertex point '${vertex}' not found in the base segment`,
+        };
+      }
+
+      const dx = protractorCenter.x - vertexPoint.x;
+      const dy = protractorCenter.y - vertexPoint.y;
+      const distance = Math.hypot(dx, dy);
+      if (distance > this.viewState.toleranceFactor) {
+        return {
+          matched: false,
+          reason: 'Protractor center is not aligned with the vertex point',
+        };
+      }
+      const { start, end } = step1;
+      otherPoint = start?.label === vertex ? end : start;
+    } else {
+      const { start, end } = step1;
+      const dStart = Math.hypot(
+        protractorCenter.x - start.x,
+        protractorCenter.y - start.y
+      );
+      const dEnd = Math.hypot(
+        protractorCenter.x - end.x,
+        protractorCenter.y - end.y
+      );
+      if (dStart <= this.viewState.toleranceFactor) {
+        vertexPoint = start;
+        otherPoint = end;
+      } else if (dEnd <= this.viewState.toleranceFactor) {
+        vertexPoint = end;
+        otherPoint = start;
+      } else {
+        return {
+          matched: false,
+          reason: 'Protractor center is not aligned with any segment endpoint',
+        };
+      }
+    }
+    const p1 = protractorCenter;
+    const p2 = geoElement.protractorAxis.end;
+    const p3 = otherPoint;
+    const isCollinear = this.areCollinear(
+      p1,
+      p2,
+      p3,
+      this.viewState.toleranceFactor
+    );
+    if (!isCollinear) {
+      return {
+        matched: false,
+        reason: 'Protractor is not aligned with the base line segment',
+      };
+    }
+    const baseSegment = new LineSegment(step1.start, step1.end);
+
+    return {
+      matched: true,
+      reason: 'Protractor is aligned correctly',
+      outputObject: baseSegment,
+    };
+  }
+
+  areCollinear(
+    p1: { x: number; y: number },
+    p2: { x: number; y: number },
+    p3: { x: number; y: number },
+    epsilon = 1e-6
+  ): boolean {
+    const area = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
+    return Math.abs(area) < epsilon;
+  }
+
+  getPointByLabelFromStepElement(
+    element: any,
+    label: string
+  ): { x: number; y: number; label: string } | null {
+    if (!element || !element.tool) return null;
+
+    switch (element.tool) {
+      case 'segment': {
+        const { start, end } = element;
+        if (start?.label === label) return start;
+        if (end?.label === label) return end;
+        break;
+      }
+    }
+
+    return null;
+  }
+
+  isLocked(): boolean {
+    return this.locked;
+  }
+
+  lockProtractor() {
+    this.locked = !this.locked;
+    return this.locked;
+  }
+
+  registerBlockingRegion(region: BlockingRegion) {
+    this.blockingRegions.push(region);
+  }
+
+  clearBlockingRegions() {
+    this.blockingRegions = [];
+  }
+
+  isPointInBlockedArea(worldX: number, worldY: number): boolean {
+    return this.blockingRegions.some((region) =>
+      region.contains(worldX, worldY)
+    );
+  }
+}

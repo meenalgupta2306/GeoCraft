@@ -5,18 +5,15 @@ export interface ConstructionEvent {
   [key: string]: any;
 }
 
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EventLogService {
-
-  constructor() { }
-   private events: ConstructionEvent[] = [];
+  constructor() {}
+  private events: ConstructionEvent[] = [];
 
   record(event: ConstructionEvent) {
     this.events.push(event);
-    console.log(this.events)
   }
 
   getEvents() {

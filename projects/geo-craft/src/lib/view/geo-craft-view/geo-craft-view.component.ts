@@ -13,9 +13,9 @@ import { ToolManagerService } from '../../controller/tool-manager.service';
 import { ViewStateService } from '../services/view-state.service';
 import { EventLogService } from '../../controller/event-log.service';
 import { ConstructionService } from '../../controller/construction.service';
-import { StepReplayService } from '../../controller/step-replay.service';
 import { ValidationService } from '../../controller/validation.service';
 import { config } from '../../config/config.json';
+import { PointToolService } from '../../controller/tools/point-tool.service';
 
 @Component({
   selector: 'lib-geo-craft-view',
@@ -37,14 +37,23 @@ export class GeoCraftViewComponent implements AfterViewInit {
     public viewState: ViewStateService,
     private eventLog: EventLogService,
     private construction: ConstructionService,
-    private validatiomService: ValidationService,
-    private stepReplay: StepReplayService
+    private validationService: ValidationService,
+    private pointToolService: PointToolService
   ) {}
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['currentQuestionCount']?.currentValue) {
-      this.renderer.clear(this.canvas.width, this.canvas.height);
-      this.drawGrid(this.renderer, this.viewState.showGrid);
+    if (changes['currentQuestionCount']?.currentValue !== undefined) {
+      this.resetView();
     }
+  }
+
+  resetView() {
+    this.renderer.clear(this.canvas.width, this.canvas.height);
+    this.viewState.clear();
+    this.viewState.clearPreviewDrawables();
+    this.pointToolService.resetLabelCount();
+
+    // 3. Re-render clean grid
+    this.drawGrid(this.renderer, this.viewState.showGrid);
   }
 
   ngAfterViewInit() {
@@ -70,7 +79,7 @@ export class GeoCraftViewComponent implements AfterViewInit {
       this.canvas.width,
       this.canvas.height
     );
-    this.validatiomService.loadConfig(config[this.currentQuestionCount]);
+    this.validationService.loadConfig(config[this.currentQuestionCount]);
   }
 
   @HostListener('window:resize')
@@ -127,28 +136,31 @@ export class GeoCraftViewComponent implements AfterViewInit {
   @HostListener('pointerdown', ['$event'])
   onPointerDown(event: PointerEvent) {
     const { wx, wy } = this.getWorldCoordinates(event);
+    if (this.toolManager.isWorldPointInBlockedTool(wx, wy)) {
+      return;
+    }
     this.toolManager.handlePointerDown(this, wx, wy);
   }
 
   @HostListener('pointerup', ['$event'])
   onPointerUp(event: PointerEvent) {
-    debugger
     const { wx, wy } = this.getWorldCoordinates(event);
+
+    //Check if point is in any blocked tool (like protractor)
+    if (this.toolManager.isWorldPointInBlockedTool(wx, wy)) {
+      return;
+    }
     this.toolManager.handlePointerUp(this, wx, wy);
-    // this.toolManager.validate();
-    this.validatiomService.startValidation();
+
+    const activeToolName = this.toolManager.activeToolName;
+    const isRendered = activeToolName
+      ? this.toolManager.isToolRendered(activeToolName)
+      : false;
+
+    if (!isRendered) {
+      this.validationService.startValidation();
+    }
   }
-
-  // @HostListener('pointermove', ['$event'])
-  // onPointerMove(event: PointerEvent) {
-  //   const { wx, wy } = this.getWorldCoordinates(event);
-
-  //   // 🔁 Send move to the current tool
-  //   this.toolManager.handleMove?.(this, wx, wy);
-
-  //   // 🔁 Re-render to show preview
-  //   this.render();
-  // }
 
   render() {
     this.renderer.clear(this.canvas.width, this.canvas.height);
@@ -162,9 +174,6 @@ export class GeoCraftViewComponent implements AfterViewInit {
     this.viewState
       .getPreviewDrawables()
       .forEach((d) => d.render(this.renderer, this));
-
-    console.log('Event Log:', this.eventLog.getEvents());
-    console.log('Construction Elements:', this.construction.getGeoElements());
   }
 
   drawGrid(renderer: CanvasRendererService, visible: boolean) {

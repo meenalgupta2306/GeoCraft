@@ -7,6 +7,12 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { ViewStateService } from '../services/view-state.service';
+import { ValidationService } from '../../controller/validation.service';
+import { ConstructionService } from '../../controller/construction.service';
+import { ProtractorToolService } from '../../controller/tools/protractor-tool.service';
+import { Point } from '../../model/point';
+import { Protractor } from '../../model/protractor';
+import { LineSegment } from '../../model/segment';
 
 @Component({
   selector: 'lib-protractor-renderer',
@@ -33,12 +39,15 @@ export class ProtractorRendererComponent implements AfterViewInit {
   private startAngle = 0;
   private currentPointerId: number | null = null;
 
-  innerRadius = 100;
+  innerRadius = 150;
 
   constructor(
     public viewState: ViewStateService,
     private ngZone: NgZone,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private validationService: ValidationService,
+    private constructionService: ConstructionService,
+    private protractorToolService: ProtractorToolService
   ) {
     this.centerX = viewState.canvasWidth / 2;
     this.centerY = viewState.canvasHeight / 2;
@@ -119,7 +128,6 @@ export class ProtractorRendererComponent implements AfterViewInit {
       this.rotating = true;
       this.dragging = false;
       this.startAngle = this.getAngleFromCenter(localX, localY) - this.rotation;
-      console.log(`Start angle: ${this.startAngle} degrees`);
     }
 
     svg.setPointerCapture(event.pointerId);
@@ -145,10 +153,8 @@ export class ProtractorRendererComponent implements AfterViewInit {
       const localY = svgPt.y - this.offsetY;
 
       const currentAngle = this.getAngleFromCenter(localX, localY);
-      console.log(`currentAngle : ${currentAngle} degrees`);
       this.rotation = currentAngle - this.startAngle;
 
-      // Normalize rotation to 0-360 degrees
       this.rotation = ((this.rotation % 360) + 360) % 360;
     }
 
@@ -177,32 +183,131 @@ export class ProtractorRendererComponent implements AfterViewInit {
   private getAngleFromCenter(x: number, y: number): number {
     const dx = x - this.centerX;
     const dy = y - this.centerY;
-    let angle = (Math.atan2(dy, dx) * 180) / Math.PI; // Removed the negative sign to fix rotation direction
-    return ((angle % 360) + 360) % 360; // Normalize to 0-360
+    let angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+    return ((angle % 360) + 360) % 360;
   }
 
-  isPointInProtractor(x: number, y: number): boolean {
-    const dx = x - this.centerX;
-    const dy = y - this.centerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    return distance <= this.radius && dy <= 0;
-  }
   private onClick = (event: MouseEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+
     const svg = this.svgRef.nativeElement;
     const pt = svg.createSVGPoint();
     pt.x = event.clientX;
     pt.y = event.clientY;
 
     const svgPt = pt.matrixTransform(svg.getScreenCTM()!.inverse());
-
     const localX = svgPt.x - this.offsetX;
     const localY = svgPt.y - this.offsetY;
 
     if (this.isPointInProtractor(localX, localY)) {
-      this.locked = !this.locked;
+      this.locked = this.protractorToolService.lockProtractor();
+
+      if (this.locked) {
+        this.protractorToolService.registerBlockingRegion({
+          contains: (worldX: number, worldY: number) =>
+            this.isWorldPointInsideProtractor(worldX, worldY),
+        });
+
+        this.validateProtractorPlacement();
+      } else {
+        this.protractorToolService.clearBlockingRegions(); // clear region when unlocked
+      }
+
       alert(`${this.locked ? 'locked' : 'unlocked'}`);
-      event.stopPropagation();
     }
   };
+
+  isWorldPointInsideProtractor(worldX: number, worldY: number): boolean {
+    const canvasX = this.viewState.toScreenX(worldX);
+    const canvasY = this.viewState.toScreenY(worldY);
+
+    return this.isPointInProtractor(canvasX, canvasY);
+  }
+
+  getProtractorReferenceAxisEndpoints() {
+    const leftX = this.viewState.toWorldX(
+      this.centerX +
+        this.offsetX -
+        this.radius * Math.cos((this.rotation * Math.PI) / 180)
+    );
+    const leftY = this.viewState.toWorldY(
+      this.centerY +
+        this.offsetY -
+        this.radius * Math.sin((this.rotation * Math.PI) / 180)
+    );
+    const leftEndpoint = new Point(leftX, leftY);
+
+    const rightX = this.viewState.toWorldX(
+      this.centerX +
+        this.offsetX +
+        this.radius * Math.cos((this.rotation * Math.PI) / 180)
+    );
+    const rightY = this.viewState.toWorldY(
+      this.centerY +
+        this.offsetY +
+        this.radius * Math.sin((this.rotation * Math.PI) / 180)
+    );
+    const rightEndpoint = new Point(rightX, rightY);
+
+    return new LineSegment(leftEndpoint, rightEndpoint);
+  }
+
+  getProtractorCenter() {
+    let x = this.viewState.toWorldX(this.centerX + this.offsetX);
+    let y = this.viewState.toWorldY(this.centerY + this.offsetY);
+    return new Point(x, y);
+  }
+
+  private validateProtractorPlacement() {
+    // Insert the current geoElement into ConstructionService’s list
+    const geoElement = this.getProtractorGeoElement();
+
+    this.constructionService.addGeoElement(geoElement);
+
+    // Now validate the new element with existing steps
+    this.validationService.startValidation();
+  }
+  private getProtractorGeoElement() {
+    const center = this.getProtractorCenter();
+    const referenceAxis = this.getProtractorReferenceAxisEndpoints();
+
+    return new Protractor(center, referenceAxis);
+  }
+
+  isPointInProtractorWithRotation(x: number, y: number): boolean {
+    // Get the protractor center in canvas coordinates
+    const protractorCenterX = this.centerX + this.offsetX;
+    const protractorCenterY = this.centerY + this.offsetY;
+
+    // Translate point to protractor's local coordinate system
+    const dx = x - protractorCenterX;
+    const dy = y - protractorCenterY;
+
+    // Apply inverse rotation to get the point in protractor's original orientation
+    const rotationRad = (-this.rotation * Math.PI) / 180;
+    const rotatedX = dx * Math.cos(rotationRad) - dy * Math.sin(rotationRad);
+    const rotatedY = dx * Math.sin(rotationRad) + dy * Math.cos(rotationRad);
+
+    // Check if the rotated point is within the protractor bounds
+    const distance = Math.sqrt(rotatedX * rotatedX + rotatedY * rotatedY);
+
+    // Check if point is within radius and in the upper semicircle (dy <= 0 in local coords)
+    return distance <= this.radius && rotatedY <= 0;
+  }
+
+  isPointInProtractor(x: number, y: number): boolean {
+    // If rotation is 0, use the simpler method
+    if (this.rotation === 0) {
+      const dx = x - this.centerX;
+      const dy = y - this.centerY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      return distance <= this.radius && dy <= 0;
+    }
+
+    // For rotated protractor, use the rotation-aware method
+    const canvasX = x + this.offsetX;
+    const canvasY = y + this.offsetY;
+    return this.isPointInProtractorWithRotation(canvasX, canvasY);
+  }
 }
