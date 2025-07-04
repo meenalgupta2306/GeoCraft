@@ -2,6 +2,8 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { ViewStateService } from './view/services/view-state.service';
 import { config } from '../lib/config/config.json';
 import { ValidationService } from './controller/validation.service';
+import { ConstructionService } from './controller/construction.service';
+import { EventLogService } from './controller/event-log.service';
 
 @Component({
   selector: 'lib-geo-craft',
@@ -29,7 +31,9 @@ export class GeoCraftComponent implements OnInit {
 
   constructor(
     private viewState: ViewStateService,
-    private validationService: ValidationService
+    private validationService: ValidationService,
+    private constructionService: ConstructionService,
+    private eventLogService: EventLogService
   ) {}
 
   ngOnInit(): void {
@@ -47,5 +51,7 @@ export class GeoCraftComponent implements OnInit {
     this.currentQuestion++;
     if (this.currentQuestion == 5) this.currentQuestion = 0;
     this.validationService.loadConfig(config[this.currentQuestion]);
+    this.constructionService.clear();
+    this.eventLogService.clear();
   }
 }

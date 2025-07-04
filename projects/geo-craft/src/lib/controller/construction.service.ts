@@ -10,7 +10,6 @@ export class ConstructionService {
 
   addGeoElement(geo: any) {
     this.geoElements.push(geo);
-    console.log(this.geoElements);
   }
 
   getLastGeoElement(): any {
@@ -19,6 +18,10 @@ export class ConstructionService {
 
   getGeoElements() {
     return this.geoElements;
+  }
+
+  updateGeoElement(index: number, geo: any) {
+    this.geoElements[index] = geo;
   }
 
   clear() {

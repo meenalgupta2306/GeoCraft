@@ -13,20 +13,21 @@ import { ViewStateService } from '../services/view-state.service';
   styleUrls: ['./compass-renderer.component.scss'],
 })
 export class CompassRendererComponent implements AfterViewInit {
-
   @ViewChild('compassSvg', { static: true }) svgRef!: ElementRef<SVGSVGElement>;
-  @ViewChild('compassGroup', { static: true }) compassRef!: ElementRef<SVGGElement>;
-  @ViewChild('pencilElement', { static: true }) pencilRef!: ElementRef<SVGGElement>;
+  @ViewChild('compassGroup', { static: true })
+  compassRef!: ElementRef<SVGGElement>;
+  @ViewChild('pencilElement', { static: true })
+  pencilRef!: ElementRef<SVGGElement>;
   @ViewChild('needleLeg', { static: true }) needleRef!: ElementRef<SVGGElement>;
   @ViewChild('pivotJoint', { static: true }) pivotRef!: ElementRef<SVGGElement>;
-  @ViewChild('drawingPath', { static: true }) pathRef!: ElementRef<SVGPathElement>;
+  @ViewChild('drawingPath', { static: true })
+  pathRef!: ElementRef<SVGPathElement>;
 
   centerX;
   centerY;
 
   pivotX = 0; // in world units
   pivotY = 0;
-
 
   openingAngle: number = 0;
   rotationAngle: number = 0;
@@ -47,13 +48,12 @@ export class CompassRendererComponent implements AfterViewInit {
 
   pathData: string = '';
 
-    constructor(public viewState: ViewStateService){
-     this.centerX = viewState.canvasWidth / 2;
-     this.centerY = viewState.canvasHeight / 2;
+  constructor(public viewState: ViewStateService) {
+    this.centerX = viewState.canvasWidth / 2;
+    this.centerY = viewState.canvasHeight / 2;
   }
 
   ngAfterViewInit(): void {
-  
     const pencil = this.pencilRef.nativeElement;
     const needle = this.needleRef.nativeElement;
 
@@ -99,7 +99,9 @@ export class CompassRendererComponent implements AfterViewInit {
       this.startMouseX = e.clientX;
       pencilDown(e.clientX);
     });
-    document.addEventListener('mousemove', (e: MouseEvent) => pencilMove(e.clientX));
+    document.addEventListener('mousemove', (e: MouseEvent) =>
+      pencilMove(e.clientX)
+    );
     document.addEventListener('mouseup', pencilUp);
 
     pencil.addEventListener('touchstart', (e: TouchEvent) => {
@@ -146,8 +148,10 @@ export class CompassRendererComponent implements AfterViewInit {
 
     document.addEventListener('touchmove', (e: TouchEvent) => {
       if (!this.movingCompass || e.touches.length === 0) return;
-      this.centerX = this.originalCenterX + (e.touches[0].clientX - this.dragStartX);
-      this.centerY = this.originalCenterY + (e.touches[0].clientY - this.dragStartY);
+      this.centerX =
+        this.originalCenterX + (e.touches[0].clientX - this.dragStartX);
+      this.centerY =
+        this.originalCenterY + (e.touches[0].clientY - this.dragStartY);
       this.updateCompass();
     });
 
@@ -160,7 +164,6 @@ export class CompassRendererComponent implements AfterViewInit {
 
     // Initial render
     this.updateCompass();
-    
   }
 
   updateCompass(): void {
@@ -177,8 +180,6 @@ export class CompassRendererComponent implements AfterViewInit {
       `translate(${translateX}, ${translateY}) rotate(${this.rotationAngle}, ${tipX}, ${tipY})`
     );
 
-    console.log("needle tip at", this.viewState.toWorldX(this.centerX), this.viewState.toWorldY(this.centerY));
-  
     // Spread pencil leg:
     const halfAngle = this.openingAngle / 2;
     const pivotX = 80;
@@ -189,39 +190,38 @@ export class CompassRendererComponent implements AfterViewInit {
     );
   }
 
+  //   getPencilTip(): [number, number] {
+  //   const pivotX = 80;
+  //   const pivotY = -180;
+  //   const tipX = 115;
+  //   const tipY = -20;
 
-//   getPencilTip(): [number, number] {
-//   const pivotX = 80;
-//   const pivotY = -180;
-//   const tipX = 115;
-//   const tipY = -20;
+  //   // 1) Spread rotation (opening angle)
+  //   const spreadRad = (-this.openingAngle / 2) * Math.PI / 180;
 
-//   // 1) Spread rotation (opening angle)
-//   const spreadRad = (-this.openingAngle / 2) * Math.PI / 180;
+  //   const dx = tipX - pivotX;
+  //   const dy = tipY - pivotY;
 
-//   const dx = tipX - pivotX;
-//   const dy = tipY - pivotY;
+  //   const spreadX = dx * Math.cos(spreadRad) - dy * Math.sin(spreadRad) + pivotX;
+  //   const spreadY = dx * Math.sin(spreadRad) + dy * Math.cos(spreadRad) + pivotY;
 
-//   const spreadX = dx * Math.cos(spreadRad) - dy * Math.sin(spreadRad) + pivotX;
-//   const spreadY = dx * Math.sin(spreadRad) + dy * Math.cos(spreadRad) + pivotY;
+  //   // 2) Rotate whole compass around the NEEDLE TIP (which is base point)
+  //   const needleTipX = 22;  // matches your compass base polygon
+  //   const needleTipY = -20;
 
-//   // 2) Rotate whole compass around the NEEDLE TIP (which is base point)
-//   const needleTipX = 22;  // matches your compass base polygon
-//   const needleTipY = -20;
+  //   const compassRad = this.rotationAngle * Math.PI / 180;
 
-//   const compassRad = this.rotationAngle * Math.PI / 180;
+  //   // move to needle base
+  //   const relX = spreadX - needleTipX;
+  //   const relY = spreadY - needleTipY;
 
-//   // move to needle base
-//   const relX = spreadX - needleTipX;
-//   const relY = spreadY - needleTipY;
+  //   const rotatedX = relX * Math.cos(compassRad) - relY * Math.sin(compassRad) + needleTipX;
+  //   const rotatedY = relX * Math.sin(compassRad) + relY * Math.cos(compassRad) + needleTipY;
 
-//   const rotatedX = relX * Math.cos(compassRad) - relY * Math.sin(compassRad) + needleTipX;
-//   const rotatedY = relX * Math.sin(compassRad) + relY * Math.cos(compassRad) + needleTipY;
-
-//   // 3) Add global position
-//   return [this.centerX + (rotatedX - needleTipX), this.centerY + (rotatedY - needleTipY)];
-// }
- /*  @ViewChild('compassGroup', { static: true })
+  //   // 3) Add global position
+  //   return [this.centerX + (rotatedX - needleTipX), this.centerY + (rotatedY - needleTipY)];
+  // }
+  /*  @ViewChild('compassGroup', { static: true })
   compassRef!: ElementRef<SVGGElement>;
 
   pivotX = 0;

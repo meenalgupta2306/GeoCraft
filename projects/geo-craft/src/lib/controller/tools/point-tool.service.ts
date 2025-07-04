@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Tool } from '../interfaces/tools-interface';
+import { InteractiveTool } from '../interfaces/tools-interface';
 import { Point } from '../../model/point';
 import { DrawPoint } from '../../drawable/draw-point';
 import { ConstructionService } from '../construction.service';
@@ -12,7 +12,7 @@ import { ValidationResult } from '../interfaces/validationResult-interface';
 @Injectable({
   providedIn: 'root',
 })
-export class PointToolService implements Tool {
+export class PointToolService implements InteractiveTool {
   private previewPoint: DrawPoint | null = null;
   private pointCount = 0;
   private currentLabel: string | null = null;
@@ -53,7 +53,6 @@ export class PointToolService implements Tool {
       view.render();
       return;
     }
-
     this.construction.addGeoElement(this.point);
     this.eventLog.record({ tool: 'PointTool', x, y, label: this.currentLabel });
 
@@ -110,5 +109,9 @@ export class PointToolService implements Tool {
 
     this.pointCount++;
     return label;
+  }
+
+  resetLabelCount(): void {
+    this.pointCount = 0;
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable, Injector } from '@angular/core';
-import { Tool } from '../interfaces/tools-interface';
+import { InteractiveTool } from '../interfaces/tools-interface';
 import { Point } from '../../model/point';
 import { ConstructionService } from '../construction.service';
 import { ViewStateService } from '../../view/services/view-state.service';
@@ -14,7 +14,7 @@ import { ValidationService } from '../validation.service';
 @Injectable({
   providedIn: 'root',
 })
-export class SegmentToolService implements Tool {
+export class SegmentToolService implements InteractiveTool {
   private startPoint: Point | null = null;
   private endPoint: Point | null = null;
   private segment: LineSegment | null = null;
@@ -76,7 +76,6 @@ export class SegmentToolService implements Tool {
     if (!this.segment || !this.previewEndPoint || !this.previewStartPoint)
       return;
 
-    // Finalize segment
     this.constructionService.addGeoElement(this.segment);
 
     // Remove glow
@@ -111,7 +110,7 @@ export class SegmentToolService implements Tool {
 
   validate(
     step: any,
-    geoElement: any,
+    geoElement: LineSegment,
     labelSensitive: boolean
   ): ValidationResult {
     debugger;
@@ -159,14 +158,31 @@ export class SegmentToolService implements Tool {
     if (typeof data.length === 'number') {
       const segmentLength = geoElement.getLength();
       lengthValid = Math.abs(segmentLength - data.length) <= epsilon;
-      console.log(
-        `📏 Length check: expected ${data.length}, got ${segmentLength.toFixed(2)}`
-      );
     }
 
-    let angleValid = true;
+    let angleValid = false;
     if (data.angle !== undefined) {
       //logic after fetching the segment needed by the dependency factor of the config.
+      const refSegment = this.validationService.getGeoElementByStepId(
+        step.depends?.[0]
+      );
+      if (!refSegment.baseSegment) {
+        return {
+          matched: false,
+          reason: `No line found`,
+        };
+      }
+      const angle = data.angle;
+      const operator = data.operator || '=';
+
+      angleValid = this.computeAngleBetweenSegments(
+        refSegment.baseSegment,
+        geoElement,
+        angle,
+        operator
+      );
+    } else {
+      angleValid = true; // No angle check if not specified
     }
 
     const isValid = isMatch && lengthValid && angleValid;
@@ -183,36 +199,75 @@ export class SegmentToolService implements Tool {
     }
   }
 
-  computeAngleBetweenSegments(seg1: any, seg2: any, angle: any, operator: any) {
-    const dx1 = seg1.end.x - seg1.start.x;
-    const dy1 = seg1.end.y - seg1.start.y;
-    const dx2 = seg2.end.x - seg2.start.x;
-    const dy2 = seg2.end.y - seg2.start.y;
+  computeAngleBetweenSegments(
+    seg1: any,
+    seg2: any,
+    expectedAngle: number,
+    operator: string = '='
+  ): boolean {
+    const epsilon = this.viewStateService.toleranceFactor || 2;
+    const inaccuracy = 0.5; // degrees
+
+    const isSamePoint = (p1: any, p2: any): boolean => {
+      return Math.abs(p1.x - p2.x) < epsilon && Math.abs(p1.y - p2.y) < epsilon;
+    };
+
+    // Step 1: Find common point
+    let common: any = null;
+    let other1: any = null;
+    let other2: any = null;
+
+    if (isSamePoint(seg1.start, seg2.start)) {
+      common = seg1.start;
+      other1 = seg1.end;
+      other2 = seg2.end;
+    } else if (isSamePoint(seg1.start, seg2.end)) {
+      common = seg1.start;
+      other1 = seg1.end;
+      other2 = seg2.start;
+    } else if (isSamePoint(seg1.end, seg2.start)) {
+      common = seg1.end;
+      other1 = seg1.start;
+      other2 = seg2.end;
+    } else if (isSamePoint(seg1.end, seg2.end)) {
+      common = seg1.end;
+      other1 = seg1.start;
+      other2 = seg2.start;
+    } else {
+      return false;
+    }
+
+    // Step 2: Compute angle
+    const dx1 = other1.x - common.x;
+    const dy1 = other1.y - common.y;
+    const dx2 = other2.x - common.x;
+    const dy2 = other2.y - common.y;
 
     const dot = dx1 * dx2 + dy1 * dy2;
     const mag1 = Math.hypot(dx1, dy1);
     const mag2 = Math.hypot(dx2, dy2);
-    const cosTheta = dot / (mag1 * mag2);
 
+    if (mag1 === 0 || mag2 === 0) {
+      return false;
+    }
+
+    const cosTheta = dot / (mag1 * mag2);
     const angleRad = Math.acos(Math.max(-1, Math.min(1, cosTheta)));
-    const degree = (angleRad * 180) / Math.PI;
-    let angleValid = true;
+    const actualAngle = (angleRad * 180) / Math.PI;
+
+    // Step 3: Validate angle
     switch (operator) {
       case '=':
-        angleValid = Math.abs(degree - angle) <= 2;
-        break;
+        return Math.abs(actualAngle - expectedAngle) <= inaccuracy;
       case '>':
-        angleValid = degree > angle;
-        break;
+        return actualAngle > expectedAngle - inaccuracy;
       case '<':
-        angleValid = degree < angle;
-        break;
+        return actualAngle < expectedAngle + inaccuracy;
       default:
-        angleValid = true;
+        return false;
     }
-    return angleValid;
   }
-  
+
   private findNearbyPoint(
     x: number,
     y: number,
