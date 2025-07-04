@@ -7,6 +7,12 @@ import { ViewStateService } from '../view/services/view-state.service';
   providedIn: 'root',
 })
 export class ValidationService {
+  private dependencyMessages: Record<string, string> = {
+    segment: 'Please draw the required segment first.',
+    protractor: 'Please place the protractor before measuring an angle.',
+    point: 'Please plot the required point first.',
+  };
+
   private geoElements: any[] = [];
   private config: any;
   private steps: any;
@@ -15,6 +21,7 @@ export class ValidationService {
     number,
     { depends: number[]; geoIndex: number }
   >();
+  currentStepId: number | null = null;
 
   constructor(
     private constructionService: ConstructionService,
@@ -57,7 +64,11 @@ export class ValidationService {
   }
 
   startValidation() {
+    debugger;
     const elements = this.constructionService.getGeoElements();
+    if (!elements.length) return;
+
+
     const lastIndex = elements?.length - 1;
     const lastElement = elements[lastIndex];
     const tool = lastElement.tool;
@@ -65,184 +76,120 @@ export class ValidationService {
     const pendingSteps = this.getPendingSteps();
 
     if (!toolService || !lastElement) return;
-    let flag = false;
-    let message;
-    let deferredResult;
+
+    this.viewState.emitmessage(null);
+
+    debugger;
 
     for (const step of pendingSteps) {
       if (step.tool !== tool) continue;
 
-      // // ✅ Step 1: Check dependency first
-      // const depsMet =
-      //   !step.depends || step.depends.every((id: number) => this.isStepCompleted(id));
+      const depsMet = this.validateDependency(step);
+debugger
+      if (!depsMet) {
+        const firstUnmet = this.getFirstIncompleteDependency(step);
+        // this.currentStepId = firstUnmet;
+        const unmetDependencyStep = this.findStepById(firstUnmet);
+        this.viewState.emitmessage(
+          this.dependencyMessages[unmetDependencyStep.tool] || null
+        );
+        return;
+      }
 
-      // if (!depsMet) {
-      //   message = 'Dependency not done';
-      //   this.deferredSteps.set(step.id, {
-      //     depends: step.depends || [],
-      //     geoIndex: lastIndex,
-      //   });
-      //   continue;
-      // }
-
-      // ✅ Step 2: Validate only if deps are satisfied
+      // ✅ Step 2: Validate only if dependencies are satisfied
       const result = toolService.validate(
         step,
         lastElement,
         this.config.labelSensitive
       );
-      const depsMet =
-        !step.depends || step.depends.every((id: number) => this.isStepCompleted(id));
-
-      if (!depsMet && !this.deferredSteps.has(step.id)) {
-        message = 'Dependency not done';
-        this.deferredSteps.set(step.id, {
-          depends: step.depends || [],
-          geoIndex: lastIndex,
-        });
-        continue;
-      }
-      if (result.matched) {
-        if (depsMet) {
-          this.markStepAsCompleted(step.id, lastIndex);
-          this.deferredSteps.delete(step.id);
-
-          debugger;
-          // ✅ Step 3: Validate previously deferred steps
-          deferredResult = this.validateDeferedSteps(step.id);
-
-          flag = true;
-          message = deferredResult?.reason || null;
-
-          break; // Done with current element
-        }
-      } else {
-        this.deferredSteps.set(step.id, {
-          depends: step.depends || [],
-          geoIndex: lastIndex,
-        });
-        message = result.reason;
-      }
+      this.displayMessage(result, step.id, lastIndex);
+      if(result.matched) break;
     }
-    if (flag || deferredResult?.matched) {
+
+    // if (!this.currentStepId) return;
+
+    // const step = this.findStepById(this.currentStepId);
+
+    // // ✅ Step 2: Validate only if dependencies are satisfied
+    // const result = toolService.validate(
+    //   step,
+    //   lastElement,
+    //   this.config.labelSensitive
+    // );
+  }
+
+  displayMessage(result: any, stepId: number, lastIndex: number) {
+    let message;
+    if (result.matched) {
+      this.markStepAsCompleted(stepId, lastIndex);
+      message = null;
       if (this.isComplete()) {
         message = '✅ Well done! You have successfully solved it.';
       } else {
-        if (deferredResult && !deferredResult?.matched) {
-          message = `Well done! ${deferredResult?.reason}`;
-        } else {
-          message = 'Well done!';
-        }
+        message = 'Well done!';
       }
-      this.viewState.emitmessage(message);
+    } else {
+      message = result.reason;
     }
+
     this.viewState.emitmessage(message || null);
   }
 
-  validateDeferedSteps(currentValidatedStepId: number) {
-    let result;
-    for (const [stepId, info] of this.deferredSteps) {
-      debugger;
-      if (!info.depends.includes(currentValidatedStepId)) continue;
+  // validateDeferedSteps(currentValidatedStepId: number) {
+  //   let result;
+  //   for (const [stepId, info] of this.deferredSteps) {
+  //     debugger;
+  //     if (!info.depends.includes(currentValidatedStepId)) continue;
 
-      const depsNowMet = info.depends.every((id) => this.isStepCompleted(id));
-      if (!depsNowMet) continue;
+  //     const depsNowMet = info.depends.every((id) => this.isStepCompleted(id));
+  //     if (!depsNowMet) continue;
 
-      const element = this.constructionService.getGeoElements()[info.geoIndex];
-      const step = this.steps.find((s: any) => s.id === stepId);
-      const toolService = this.toolManager.toolMap[step.tool];
-      if (!toolService) continue;
+  //     const element = this.constructionService.getGeoElements()[info.geoIndex];
+  //     const step = this.steps.find((s: any) => s.id === stepId);
+  //     const toolService = this.toolManager.toolMap[step.tool];
+  //     if (!toolService) continue;
 
-      result = toolService.validate(step, element, this.config.labelSensitive);
-      if (result.matched) {
-        this.markStepAsCompleted(stepId, info.geoIndex);
-        this.deferredSteps.delete(stepId);
-      }
-    }
-    return result;
-  }
+  //     result = toolService.validate(step, element, this.config.labelSensitive);
+  //     if (result.matched) {
+  //       this.markStepAsCompleted(stepId, info.geoIndex);
+  //       this.deferredSteps.delete(stepId);
+  //     }
+  //   }
+  //   return result;
+  // }
 
-  /* startValidation() {
-    const elements = this.constructionService.getGeoElements();
-    const lastIndex = elements.length - 1;
-    const pendingSteps = this.getPendingSteps();
+  validateDependency(step: any) {
+    const depsMet =
+      !step.depends ||
+      step.depends.every((id: number) => this.isStepCompleted(id));
 
-    debugger;
-    //for (let i = 0; i < elements.length; i++) {
-      const element = elements[lastIndex];
-      const tool = element.tool;
-
-      const toolService = this.toolManager.toolMap[tool];
-      // if (!toolService) continue;
-
-      for (const step of pendingSteps) {
-        if (step.tool !== tool) continue;
-
-        //check all dependencies are completed
-        const depsMet =
-          !step.depends || step.depends.every((id: number) => this.isStepCompleted(id));
-
-        //continue to next if dependencies are not done
-
-        const result = toolService.validate(
-          step,
-          element,
-          this.config.labelSensitive
-        );
-         if (!depsMet) {
-          this.viewState.emitmessage('dependency not done');
-          this.deferredSteps.set(step.id, {
-            depends: step.depends || [],
-            geoIndex: lastIndex,
-          });
-
-          continue;
-        }
-
-
-        if (result.matched && depsMet) {
-          this.markStepAsCompleted(step.id, lastIndex);
-          const allCompleted = this.config.steps.every((step: any) =>
-            this.completedStepMap.has(step.id)
-          );
-
-          this.viewState.emitmessage(
-            allCompleted ? 'Well done! you ahve succesfully solved it.' : null
-          );
-
-          this.validateDeferedSteps(step.id);
-          break;
-        } else if (
-          result.reason  &&
-          tool === this.toolManager.activeToolName
-        ) {
-          this.viewState.emitmessage(result.reason);
-        }
-      }
+    // for (const stepId of step.depends || []) {
+    //   if (!this.isStepCompleted(stepId)) {
+    //     const depStep = this.findStepById(stepId);
+    //     return {depStep: false, message: this.dependencyMessages[depStep.tool]};
+    //     // this.viewState.emitmessage(this.dependencyMessages[depStep.tool]);
+    //   }
     // }
+    return depsMet;
   }
 
-  validateDeferedSteps(completedStepId: number) {
-    for (const [stepId, info] of this.deferredSteps) {
-      if (!info.depends.includes(completedStepId)) continue;
+  findStepById(stepId: number): any | null {
+    return this.steps.find((step: any) => step.id === stepId) || null;
+  }
+  // Helper to find the first unmet dependency recursively
+  private getFirstIncompleteDependency(step: any): number {
+    if (!step.depends || step.depends.length === 0) {
+      return step.id;
+    }
 
-      const depsNowMet = info.depends.every((id) => this.isStepCompleted(id));
-      if (!depsNowMet) continue;
-
-      const element = this.constructionService.getGeoElements()[info.geoIndex];
-      const step = this.steps.find((s: any) => s.id === stepId);
-      const toolService = this.toolManager.toolMap[step.tool];
-      if (!toolService) continue;
-
-      const result = toolService.validate(
-        step,
-        element,
-        this.config.labelSensitive
-      );
-      if (result.matched) {
-        this.markStepAsCompleted(stepId, info.geoIndex);
-        this.deferredSteps.delete(stepId);
+    for (const depId of step.depends) {
+      if (!this.isStepCompleted(depId)) {
+        const depStep = this.findStepById(depId);
+        return this.getFirstIncompleteDependency(depStep);
       }
     }
-  } */
+
+    // All dependencies met
+    return step.id;
+  }
 }
