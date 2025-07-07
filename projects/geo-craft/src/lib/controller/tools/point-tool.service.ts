@@ -6,8 +6,8 @@ import { ConstructionService } from '../construction.service';
 import { EventLogService } from '../event-log.service';
 import { ViewStateService } from '../../view/services/view-state.service';
 import { GeoCraftViewComponent } from '../../view/geo-craft-view/geo-craft-view.component';
-import { ToolManagerService } from '../tool-manager.service';
 import { ValidationResult } from '../interfaces/validationResult-interface';
+import { ValidationService } from '../validation.service';
 
 @Injectable({
   providedIn: 'root',
@@ -21,7 +21,8 @@ export class PointToolService implements InteractiveTool {
   constructor(
     private construction: ConstructionService,
     private eventLog: EventLogService,
-    private viewState: ViewStateService
+    private viewState: ViewStateService,
+    private validationService: ValidationService,
   ) {}
 
   private pointExists(x: number, y: number): boolean {
@@ -60,6 +61,7 @@ export class PointToolService implements InteractiveTool {
 
     this.previewPoint = null;
     view.render();
+    this.validationService.startValidation();
   }
 
   validate(

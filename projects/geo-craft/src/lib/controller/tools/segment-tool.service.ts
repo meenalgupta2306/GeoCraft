@@ -101,6 +101,7 @@ export class SegmentToolService implements InteractiveTool {
     this.previewEndPoint = null;
 
     view.render();
+    this.validationService.startValidation();
   }
 
   cancel(): void {

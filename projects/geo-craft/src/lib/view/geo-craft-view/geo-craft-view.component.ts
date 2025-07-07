@@ -141,14 +141,14 @@ export class GeoCraftViewComponent implements AfterViewInit {
 
     this.toolManager.handlePointerUp(this, wx, wy);
 
-    const activeToolName = this.toolManager.activeToolName;
-    const isRendered = activeToolName
-      ? this.toolManager.isToolRendered(activeToolName)
-      : false;
+    // const activeToolName = this.toolManager.activeToolName;
+    // const isRendered = activeToolName
+    //   ? this.toolManager.isToolRendered(activeToolName)
+    //   : false;
 
-    if (!isRendered) {
-      this.validationService.startValidation();
-    }
+    // if (!isRendered) {
+    //   this.validationService.startValidation();
+    // }
   }
 
   render() {

@@ -109,7 +109,7 @@ export class ProtractorToolService implements PassiveTool {
 
     return {
       matched,
-      reason: matched ? 'Protractor is aligned correctly.' : reason,
+      reason: matched ? '✅ Perfect alignment! You can proceed to draw the required angle.' : reason,
       outputObject,
     };
   }
