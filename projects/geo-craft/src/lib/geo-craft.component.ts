@@ -1,9 +1,18 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  ViewChild,
+} from '@angular/core';
 import { ViewStateService } from './view/services/view-state.service';
 import { config } from '../lib/config/config.json';
 import { ValidationService } from './controller/validation.service';
 import { ConstructionService } from './controller/construction.service';
 import { EventLogService } from './controller/event-log.service';
+import { ToolManagerService } from './controller/tool-manager.service';
+import { GeoCraftViewComponent } from './view/geo-craft-view/geo-craft-view.component';
 
 @Component({
   selector: 'lib-geo-craft',
@@ -12,6 +21,7 @@ import { EventLogService } from './controller/event-log.service';
 })
 export class GeoCraftComponent implements OnInit {
   @Output() validationMessage = new EventEmitter<string>();
+  @ViewChild('geoCraftView') viewRef!: GeoCraftViewComponent;
   config = {
     showGrid: true,
     snapToGrid: true,
@@ -33,7 +43,8 @@ export class GeoCraftComponent implements OnInit {
     private viewState: ViewStateService,
     private validationService: ValidationService,
     private constructionService: ConstructionService,
-    private eventLogService: EventLogService
+    private eventLogService: EventLogService,
+    private toolManager: ToolManagerService
   ) {}
 
   ngOnInit(): void {
@@ -49,9 +60,17 @@ export class GeoCraftComponent implements OnInit {
 
   next() {
     this.currentQuestion++;
-    if (this.currentQuestion == 5) this.currentQuestion = 0;
+    if (this.currentQuestion === 5) this.currentQuestion = 0;
+
+    this.toolManager.resetTools(); // ✅ Clear tools (active/passive)
+    this.constructionService.clear(); // ✅ Clear geoElements
+    this.validationService.reset(); // ✅ Clear completed/deferred steps
+    this.eventLogService.clear(); // ✅ Clear logs
+
     this.validationService.loadConfig(config[this.currentQuestion]);
-    this.constructionService.clear();
-    this.eventLogService.clear();
+
+    if (this.viewRef) {
+      this.viewRef.resetView();
+    }
   }
 }

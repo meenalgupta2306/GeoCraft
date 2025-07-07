@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ToolManagerService } from '../../controller/tool-manager.service';
 import { ViewStateService } from '../services/view-state.service';
 @Component({
@@ -28,15 +28,32 @@ export class ToolBarComponent implements OnInit {
       icon: 'looks',
     },
   ];
+  passiveTools = ['protractor', 'compass'];
+  selectedToolNames: Set<string> = new Set();
 
   constructor(
     public toolManager: ToolManagerService,
-    public viewState: ViewStateService
+    public viewState: ViewStateService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {}
 
   selectTool(toolName: string) {
     this.toolManager.setActiveTool(toolName);
+    if (this.selectedToolNames.has(toolName)) {
+      this.selectedToolNames.delete(toolName); // deselect if already selected
+    } else {
+      this.selectedToolNames.add(toolName); // select if not present
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  isToolActive(toolName: string): boolean {
+    const isPassive = this.passiveTools.includes(toolName);
+    return isPassive
+      ? this.toolManager.isToolRendered(toolName)
+      : this.toolManager.activeToolName === toolName;
   }
 }

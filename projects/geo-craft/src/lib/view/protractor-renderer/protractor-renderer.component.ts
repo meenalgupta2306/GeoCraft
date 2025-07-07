@@ -40,6 +40,7 @@ export class ProtractorRendererComponent implements AfterViewInit {
   private currentPointerId: number | null = null;
 
   innerRadius = 150;
+  private blockingRegionUpdateTimeout: any = null;
 
   constructor(
     public viewState: ViewStateService,
@@ -94,6 +95,10 @@ export class ProtractorRendererComponent implements AfterViewInit {
   }
 
   private onPointerDown = (event: PointerEvent) => {
+    if (!this.isEventInsideProtractor(event)) return;
+
+    event.preventDefault();
+    event.stopPropagation();
     if (this.locked) return;
 
     const svg = this.svgRef.nativeElement;
@@ -108,9 +113,6 @@ export class ProtractorRendererComponent implements AfterViewInit {
     const localY = svgPt.y - this.offsetY;
 
     if (!this.isPointInProtractor(localX, localY)) return;
-
-    event.preventDefault();
-    event.stopPropagation();
 
     this.currentPointerId = event.pointerId;
 
@@ -157,7 +159,6 @@ export class ProtractorRendererComponent implements AfterViewInit {
 
       this.rotation = ((this.rotation % 360) + 360) % 360;
     }
-
     requestAnimationFrame(() => this.cdr.detectChanges());
   };
 
@@ -188,6 +189,7 @@ export class ProtractorRendererComponent implements AfterViewInit {
   }
 
   private onClick = (event: MouseEvent) => {
+    if (!this.isEventInsideProtractor(event)) return;
     event.stopPropagation();
     event.preventDefault();
 
@@ -202,16 +204,9 @@ export class ProtractorRendererComponent implements AfterViewInit {
 
     if (this.isPointInProtractor(localX, localY)) {
       this.locked = this.protractorToolService.lockProtractor();
-
+      this.updateBlockingRegion();
       if (this.locked) {
-        this.protractorToolService.registerBlockingRegion({
-          contains: (worldX: number, worldY: number) =>
-            this.isWorldPointInsideProtractor(worldX, worldY),
-        });
-
         this.validateProtractorPlacement();
-      } else {
-        this.protractorToolService.clearBlockingRegions(); // clear region when unlocked
       }
 
       alert(`${this.locked ? 'locked' : 'unlocked'}`);
@@ -291,7 +286,6 @@ export class ProtractorRendererComponent implements AfterViewInit {
 
     // Check if the rotated point is within the protractor bounds
     const distance = Math.sqrt(rotatedX * rotatedX + rotatedY * rotatedY);
-
     // Check if point is within radius and in the upper semicircle (dy <= 0 in local coords)
     return distance <= this.radius && rotatedY <= 0;
   }
@@ -309,5 +303,40 @@ export class ProtractorRendererComponent implements AfterViewInit {
     const canvasX = x + this.offsetX;
     const canvasY = y + this.offsetY;
     return this.isPointInProtractorWithRotation(canvasX, canvasY);
+  }
+
+  updateBlockingRegion() {
+    if (!this.locked) {
+      return;
+    }
+    // Clear existing and register new
+    this.protractorToolService.clearBlockingRegions();
+    this.protractorToolService.registerBlockingRegion({
+      contains: (worldX: number, worldY: number) =>
+        this.isWorldPointInsideProtractor(worldX, worldY),
+    });
+  }
+
+  scheduleBlockingRegionUpdate() {
+    if (this.blockingRegionUpdateTimeout) {
+      clearTimeout(this.blockingRegionUpdateTimeout);
+    }
+
+    this.blockingRegionUpdateTimeout = setTimeout(() => {
+      this.updateBlockingRegion();
+    }, 300);
+  }
+
+  private isEventInsideProtractor(event: PointerEvent | MouseEvent): boolean {
+    const svg = this.svgRef.nativeElement;
+    const pt = svg.createSVGPoint();
+    pt.x = event.clientX;
+    pt.y = event.clientY;
+
+    const svgPt = pt.matrixTransform(svg.getScreenCTM()!.inverse());
+    const localX = svgPt.x - this.offsetX;
+    const localY = svgPt.y - this.offsetY;
+
+    return this.isPointInProtractor(localX, localY);
   }
 }

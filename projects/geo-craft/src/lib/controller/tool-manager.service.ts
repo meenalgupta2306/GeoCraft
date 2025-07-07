@@ -34,32 +34,29 @@ export class ToolManagerService {
   setActiveTool(toolName: string) {
     const isPassive = ['protractor', 'compass'].includes(toolName);
 
-    // Deselecting same tool
-    if (this.activeToolName === toolName) {
-      if (this.toolMap[toolName]) {
-        this.activeTool = null;
-        this.activeToolName = null;
-      }
+    const alreadySelected =
+      (!isPassive && this.activeToolName === toolName) ||
+      (isPassive && this.renderedToolSet.has(toolName));
+
+    if (alreadySelected) {
+      this.activeTool = null;
+      this.activeToolName = null;
 
       if (isPassive) {
-        this.hideTool(toolName); // Remove protractor/compass from canvas
-        this.renderedToolSet.delete(toolName); // Remove from renderedToolSet
-        this.protractorTool.clearBlockingRegions(); // ❗️Clear blocked areas
+        this.hideTool(toolName);
+        this.protractorTool.clearBlockingRegions(); // ✅ Remove blocked regions
       }
 
       return;
     }
+    this.activeToolName = toolName;
 
-    // Selecting a passive tool
     if (isPassive) {
-      this.activeTool = null; // ❗️Disable active tool
-      this.activeToolName = toolName;
-      this.renderedToolSet.add(toolName); // Show on canvas
+      this.activeTool = null;
+      this.renderedToolSet.add(toolName);
       return;
     }
 
-    // Selecting an interactive tool
-    this.activeToolName = toolName;
     const tool = this.toolMap[toolName];
     if (isInteractiveTool(tool)) {
       this.activeTool = tool;
@@ -97,5 +94,13 @@ export class ToolManagerService {
   isWorldPointInBlockedTool(x: number, y: number): boolean {
     const result = this.protractorTool.isPointInBlockedArea(x, y);
     return result;
+  }
+
+  resetTools() {
+    this.activeTool = null;
+    this.activeToolName = null;
+    this.renderedToolSet.clear();
+
+    this.protractorTool.clearBlockingRegions();
   }
 }

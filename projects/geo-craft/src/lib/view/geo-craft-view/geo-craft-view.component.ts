@@ -51,17 +51,12 @@ export class GeoCraftViewComponent implements AfterViewInit {
     this.viewState.clear();
     this.viewState.clearPreviewDrawables();
     this.pointToolService.resetLabelCount();
-
-    // 3. Re-render clean grid
-    this.drawGrid(this.renderer, this.viewState.showGrid);
+    this.render();
   }
 
   ngAfterViewInit() {
     this.ctx = this.canvasRef.nativeElement.getContext('2d')!;
     this.resizeCanvas();
-    // setTimeout(()=>{
-    //   this.stepReplay.playAll(config.steps, this);
-    // },1000)
   }
   ngOnInit(): void {
     this.canvas = this.canvasRef.nativeElement;
@@ -136,20 +131,14 @@ export class GeoCraftViewComponent implements AfterViewInit {
   @HostListener('pointerdown', ['$event'])
   onPointerDown(event: PointerEvent) {
     const { wx, wy } = this.getWorldCoordinates(event);
-    if (this.toolManager.isWorldPointInBlockedTool(wx, wy)) {
-      return;
-    }
     this.toolManager.handlePointerDown(this, wx, wy);
   }
 
   @HostListener('pointerup', ['$event'])
   onPointerUp(event: PointerEvent) {
     const { wx, wy } = this.getWorldCoordinates(event);
-
     //Check if point is in any blocked tool (like protractor)
-    if (this.toolManager.isWorldPointInBlockedTool(wx, wy)) {
-      return;
-    }
+
     this.toolManager.handlePointerUp(this, wx, wy);
 
     const activeToolName = this.toolManager.activeToolName;
