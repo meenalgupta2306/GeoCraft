@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { InteractiveTool } from '../interfaces/tools-interface';
 import { Point } from '../../model/point';
 import { DrawPoint } from '../../drawable/draw-point';
@@ -6,8 +6,8 @@ import { ConstructionService } from '../construction.service';
 import { EventLogService } from '../event-log.service';
 import { ViewStateService } from '../../view/services/view-state.service';
 import { GeoCraftViewComponent } from '../../view/geo-craft-view/geo-craft-view.component';
-import { ToolManagerService } from '../tool-manager.service';
 import { ValidationResult } from '../interfaces/validationResult-interface';
+import { ValidationService } from '../validation.service';
 
 @Injectable({
   providedIn: 'root',
@@ -17,12 +17,21 @@ export class PointToolService implements InteractiveTool {
   private pointCount = 0;
   private currentLabel: string | null = null;
   private point!: Point;
+  private _validationService?: ValidationService;
 
   constructor(
     private construction: ConstructionService,
     private eventLog: EventLogService,
-    private viewState: ViewStateService
+    private viewState: ViewStateService,
+    private injector: Injector // private validationService: ValidationService,
   ) {}
+
+  private get validationService(): ValidationService {
+    if (!this._validationService) {
+      this._validationService = this.injector.get(ValidationService);
+    }
+    return this._validationService;
+  }
 
   private pointExists(x: number, y: number): boolean {
     return this.construction
@@ -60,6 +69,7 @@ export class PointToolService implements InteractiveTool {
 
     this.previewPoint = null;
     view.render();
+    this.validationService.startValidation();
   }
 
   validate(

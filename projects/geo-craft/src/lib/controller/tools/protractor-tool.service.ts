@@ -18,12 +18,9 @@ export class ProtractorToolService implements PassiveTool {
   private validationService!: ValidationService;
   private locked: boolean = false;
   private blockingRegions: BlockingRegion[] = [];
+  public protractorNeedsReset = false;
 
-  constructor(
-    private viewState: ViewStateService,
-    private injector: Injector,
-    private constructionService: ConstructionService
-  ) {
+  constructor(private viewState: ViewStateService, private injector: Injector) {
     setTimeout(() => {
       this.validationService = this.injector.get(ValidationService);
     });
@@ -34,87 +31,89 @@ export class ProtractorToolService implements PassiveTool {
     geoElement: Protractor,
     labelSensitive: boolean
   ): ValidationResult {
+    let matched = false;
+    let reason = '';
+    let outputObject: LineSegment | undefined;
+
     if (!this.validationService) {
-      return {
-        matched: false,
-        reason: 'Validation service not initialized yet',
-      };
-    }
-    if (!step?.id || !step?.data?.vertex) {
-      return { matched: false, reason: 'Step config is invalid' };
-    }
-    const depends = step.depends || [];
-    const protractorCenter = geoElement.center;
-    const step1 = this.validationService.getGeoElementByStepId(depends[0]);
-
-    let vertexPoint: any = null;
-    let otherPoint: any = null;
-
-    if (labelSensitive) {
-      const vertex = step.data;
-      vertexPoint = this.getPointByLabelFromStepElement(step1, vertex);
-      if (!vertexPoint) {
-        return {
-          matched: false,
-          reason: `Vertex point '${vertex}' not found in the base segment`,
-        };
-      }
-
-      const dx = protractorCenter.x - vertexPoint.x;
-      const dy = protractorCenter.y - vertexPoint.y;
-      const distance = Math.hypot(dx, dy);
-      if (distance > this.viewState.toleranceFactor) {
-        return {
-          matched: false,
-          reason: 'Protractor center is not aligned with the vertex point',
-        };
-      }
-      const { start, end } = step1;
-      otherPoint = start?.label === vertex ? end : start;
+      reason = 'Something went wrong. Please try again.';
+    } else if (!step?.id || !step?.data?.vertex) {
+      reason = 'This step seems to be incomplete.';
     } else {
-      const { start, end } = step1;
-      const dStart = Math.hypot(
-        protractorCenter.x - start.x,
-        protractorCenter.y - start.y
-      );
-      const dEnd = Math.hypot(
-        protractorCenter.x - end.x,
-        protractorCenter.y - end.y
-      );
-      if (dStart <= this.viewState.toleranceFactor) {
-        vertexPoint = start;
-        otherPoint = end;
-      } else if (dEnd <= this.viewState.toleranceFactor) {
-        vertexPoint = end;
-        otherPoint = start;
+      const depends = step.depends || [];
+      const protractorCenter = geoElement.center;
+      const step1 = this.validationService.getGeoElementByStepId(depends[0]);
+
+      let vertexPoint: any = null;
+      let otherPoint: any = null;
+
+      if (labelSensitive) {
+        const vertex = step.data;
+        vertexPoint = this.getPointByLabelFromStepElement(step1, vertex);
+        if (!vertexPoint) {
+          reason = `Couldn't find the point labeled "${vertex}".`;
+        } else {
+          const dx = protractorCenter.x - vertexPoint.x;
+          const dy = protractorCenter.y - vertexPoint.y;
+          const distance = Math.hypot(dx, dy);
+          if (distance > this.viewState.toleranceFactor) {
+            reason = `Place the protractor's center exactly on point "${vertex}".`;
+          } else {
+            const { start, end } = step1;
+            otherPoint = start?.label === vertex ? end : start;
+          }
+        }
       } else {
-        return {
-          matched: false,
-          reason: 'Protractor center is not aligned with any segment endpoint',
-        };
+        const { start, end } = step1;
+        const dStart = Math.hypot(
+          protractorCenter.x - start.x,
+          protractorCenter.y - start.y
+        );
+        const dEnd = Math.hypot(
+          protractorCenter.x - end.x,
+          protractorCenter.y - end.y
+        );
+        if (dStart <= this.viewState.toleranceFactor) {
+          vertexPoint = start;
+          otherPoint = end;
+        } else if (dEnd <= this.viewState.toleranceFactor) {
+          vertexPoint = end;
+          otherPoint = start;
+        } else {
+          reason = `Place the center of the protractor on one of the ends of the segment.`;
+        }
+      }
+
+      if (vertexPoint && otherPoint) {
+        const p1 = protractorCenter;
+        const p2 = geoElement.protractorAxis.end;
+        const p3 = otherPoint;
+        const isCollinear = this.areCollinear(
+          p1,
+          p2,
+          p3,
+          this.viewState.toleranceFactor
+        );
+
+        if (!isCollinear) {
+          reason = `The protractor's base must align with the segment.`;
+        } else {
+          matched = true;
+          outputObject = new LineSegment(step1.start, step1.end);
+        }
       }
     }
-    const p1 = protractorCenter;
-    const p2 = geoElement.protractorAxis.end;
-    const p3 = otherPoint;
-    const isCollinear = this.areCollinear(
-      p1,
-      p2,
-      p3,
-      this.viewState.toleranceFactor
-    );
-    if (!isCollinear) {
-      return {
-        matched: false,
-        reason: 'Protractor is not aligned with the base line segment',
-      };
+
+    if (!matched && reason) {
+      this.viewState.emitmessage(reason); // ✅ Single point for message
     }
-    const baseSegment = new LineSegment(step1.start, step1.end);
 
     return {
-      matched: true,
-      reason: 'Protractor is aligned correctly',
-      outputObject: baseSegment,
+      matched,
+      reason: matched
+        ? '✅ Perfect alignment! You can proceed to draw the required angle.'
+        : reason,
+      outputObject,
     };
   }
 
@@ -152,6 +151,12 @@ export class ProtractorToolService implements PassiveTool {
 
   lockProtractor() {
     this.locked = !this.locked;
+    console.log('lockProtractor', this.locked);
+    return this.locked;
+  }
+
+  resetLock() {
+    this.locked = false;
     return this.locked;
   }
 

@@ -4,9 +4,8 @@
     (click)="selectTool(tool.name)"
     class="tool-button"
     [title]="tool.label"
-    [class.active]="toolManager.activeToolName === tool.name"
-    [class.visible]="toolManager.isToolRendered(tool.name)"
+    [class.active]="selectedToolNames.has(tool.name)"
   >
-    <span class="material-symbols-outlined"> {{ tool.icon }}</span>
+    <span class="material-symbols-outlined"> {{ tool.icon }} </span>
   </button>
 </div>

@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
-import { LineSegment } from '../../model/segment';
-import { Point } from '../../model/point';
 @Injectable({
   providedIn: 'root',
 })
@@ -23,7 +21,6 @@ export class ViewStateService {
   worldMinY = -5;
   worldMaxY = 5;
 
-
   // ✅ Canvas dimensions (for SVG to sync)
   canvasWidth!: number;
   canvasHeight!: number;
@@ -41,7 +38,6 @@ export class ViewStateService {
 
   errorMessage: Subject<any> = new Subject<String | null>();
 
-
   constructor() {}
 
   addDrawable(drawable: any) {
@@ -54,6 +50,7 @@ export class ViewStateService {
 
   clear() {
     this.drawables = [];
+    this.previewDrawables = [];
   }
 
   setCanvasConfig(config: any) {
@@ -90,8 +87,6 @@ export class ViewStateService {
   }
 
   toWorldX(screenX: number): number {
-    console.log(screenX, this.screenOriginX);
-
     return (screenX - this.screenOriginX) / this.screenScaleX;
   }
 
@@ -115,20 +110,18 @@ export class ViewStateService {
     return this.previewDrawables;
   }
   get tolerance(): number {
-    return this.gridStep ;
+    return this.gridStep;
   }
   getVisibleWorldRange() {
-  const minX = this.toWorldX(0);
-  const maxX = this.toWorldX(this.canvasWidth);
-  const minY = this.toWorldY(this.canvasHeight);
-  const maxY = this.toWorldY(0);
+    const minX = this.toWorldX(0);
+    const maxX = this.toWorldX(this.canvasWidth);
+    const minY = this.toWorldY(this.canvasHeight);
+    const maxY = this.toWorldY(0);
 
-  return { minX, maxX, minY, maxY };
-}
+    return { minX, maxX, minY, maxY };
+  }
 
-
-  emitmessage(msg: any) {
-    debugger
+  emitmessage(msg: string | null) {
     this.errorMessage.next(msg);
   }
 }
