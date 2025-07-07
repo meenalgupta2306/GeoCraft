@@ -127,7 +127,7 @@ export class ViewStateService {
 }
 
 
-  emitmessage(msg: string | null) {
+  emitmessage(msg: any) {
     debugger
     this.errorMessage.next(msg);
   }
