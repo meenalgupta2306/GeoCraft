@@ -12,17 +12,15 @@ import {
   providedIn: 'root',
 })
 export class ValidationService {
- private dependencyMessages: Record<string, (step:any) => string> = {
-  segment: () => 'Please draw the required segment first.',
-  protractor: (step) => {
-    const dependentStep=this.getGeoElementByStepId(step.depends[0]);
-    return `Please place the protractor on the base segment ${dependentStep.start.label}${dependentStep.end.label}.`
-  },
-  point: () => 'Please plot the required point first.',
-};
+  private dependencyMessages: Record<string, (step: any) => string> = {
+    segment: () => 'Please draw the required segment first.',
+    protractor: (step) => {
+      const dependentStep = this.getGeoElementByStepId(step.depends[0]);
+      return `Please place the protractor on the base segment ${dependentStep.start.label}${dependentStep.end.label}.`;
+    },
+    point: () => 'Please plot the required point first.',
+  };
 
-
-  private geoElements: any[] = [];
   private config: any;
   private steps: any;
   private completedStepMap = new Map<number, number>(); // stepId → geoIndex
@@ -96,7 +94,9 @@ export class ValidationService {
         const firstUnmet = this.getFirstIncompleteDependency(step);
         const unmetDependencyStep = this.findStepById(firstUnmet);
         this.viewState.emitmessage(
-          this.dependencyMessages[unmetDependencyStep.tool](unmetDependencyStep) || null
+          this.dependencyMessages[unmetDependencyStep.tool](
+            unmetDependencyStep
+          ) || null
         );
         return;
       }

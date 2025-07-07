@@ -40,13 +40,31 @@ export class ToolBarComponent implements OnInit {
   ngOnInit(): void {}
 
   selectTool(toolName: string) {
-    this.toolManager.setActiveTool(toolName);
-    if (this.selectedToolNames.has(toolName)) {
-      this.selectedToolNames.delete(toolName); // deselect if already selected
-    } else {
-      this.selectedToolNames.add(toolName); // select if not present
+    const isPassive = this.passiveTools.includes(toolName);
+    const isAlreadySelected = this.selectedToolNames.has(toolName);
+    if (isAlreadySelected) {
+      this.selectedToolNames.delete(toolName);
+      this.toolManager.setActiveTool(toolName);
+      this.cdr.detectChanges();
+      return;
     }
-
+    if (isPassive) {
+      this.selectedToolNames.forEach((t) => {
+        if (this.passiveTools.includes(t) && t !== toolName) {
+          this.selectedToolNames.delete(t);
+          this.toolManager.setActiveTool(t);
+        }
+      });
+    } else {
+      this.selectedToolNames.forEach((t) => {
+        if (!this.passiveTools.includes(t) && t !== toolName) {
+          this.selectedToolNames.delete(t);
+          this.toolManager.setActiveTool(t);
+        }
+      });
+    }
+    this.selectedToolNames.add(toolName);
+    this.toolManager.setActiveTool(toolName);
     this.cdr.detectChanges();
   }
 
