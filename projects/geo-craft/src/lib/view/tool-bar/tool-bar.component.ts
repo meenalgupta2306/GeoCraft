@@ -74,4 +74,10 @@ export class ToolBarComponent implements OnInit {
       ? this.toolManager.isToolRendered(toolName)
       : this.toolManager.activeToolName === toolName;
   }
+
+  clearSelectedTools() {
+    this.selectedToolNames.clear();
+    this.toolManager.resetTools(); // also clears rendered tools and active tool
+    this.cdr.detectChanges();
+  }
 }

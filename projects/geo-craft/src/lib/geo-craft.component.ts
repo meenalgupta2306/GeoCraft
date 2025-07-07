@@ -13,6 +13,7 @@ import { ConstructionService } from './controller/construction.service';
 import { EventLogService } from './controller/event-log.service';
 import { ToolManagerService } from './controller/tool-manager.service';
 import { GeoCraftViewComponent } from './view/geo-craft-view/geo-craft-view.component';
+import { ToolBarComponent } from './view/tool-bar/tool-bar.component';
 
 @Component({
   selector: 'lib-geo-craft',
@@ -22,6 +23,8 @@ import { GeoCraftViewComponent } from './view/geo-craft-view/geo-craft-view.comp
 export class GeoCraftComponent implements OnInit {
   @Output() validationMessage = new EventEmitter<string>();
   @ViewChild('geoCraftView') viewRef!: GeoCraftViewComponent;
+  @ViewChild(ToolBarComponent) toolBarComponent!: ToolBarComponent;
+
   config = {
     showGrid: true,
     snapToGrid: true,
@@ -71,6 +74,9 @@ export class GeoCraftComponent implements OnInit {
 
     if (this.viewRef) {
       this.viewRef.resetView();
+    }
+    if (this.toolBarComponent) {
+      this.toolBarComponent.clearSelectedTools();
     }
   }
 }

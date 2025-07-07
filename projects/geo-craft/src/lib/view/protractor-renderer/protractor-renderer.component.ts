@@ -55,6 +55,15 @@ export class ProtractorRendererComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
+    console.log(
+      'protractorNeedsReset',
+      this.protractorToolService.protractorNeedsReset
+    );
+    if (this.protractorToolService.protractorNeedsReset) {
+      console.log('reset');
+      this.reset();
+      this.protractorToolService.protractorNeedsReset = false;
+    }
     const svg = this.svgRef.nativeElement;
 
     this.ngZone.runOutsideAngular(() => {
@@ -75,6 +84,30 @@ export class ProtractorRendererComponent implements AfterViewInit {
       result.push({ angle, type });
     }
     return result;
+  }
+
+  reset() {
+    console.log('reset');
+    this.locked = this.protractorToolService.resetLock();
+
+    this.offsetX = 0;
+    this.offsetY = 0;
+    this.rotation = 0;
+
+    this.dragging = false;
+    this.rotating = false;
+    this.startX = 0;
+    this.startY = 0;
+    this.startAngle = 0;
+    this.currentPointerId = null;
+
+    this.blockingRegionUpdateTimeout &&
+      clearTimeout(this.blockingRegionUpdateTimeout);
+    this.blockingRegionUpdateTimeout = null;
+
+    this.protractorToolService.clearBlockingRegions();
+
+    this.cdr.detectChanges();
   }
 
   polar(angle: number, r: number) {
@@ -208,7 +241,7 @@ export class ProtractorRendererComponent implements AfterViewInit {
       if (this.locked) {
         this.validateProtractorPlacement();
       }
-
+      console.log('locked', this.locked);
       alert(`${this.locked ? 'locked' : 'unlocked'}`);
     }
   };

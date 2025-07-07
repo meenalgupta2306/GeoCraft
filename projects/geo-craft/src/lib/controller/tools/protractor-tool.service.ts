@@ -18,6 +18,7 @@ export class ProtractorToolService implements PassiveTool {
   private validationService!: ValidationService;
   private locked: boolean = false;
   private blockingRegions: BlockingRegion[] = [];
+  public protractorNeedsReset = false;
 
   constructor(private viewState: ViewStateService, private injector: Injector) {
     setTimeout(() => {
@@ -109,7 +110,9 @@ export class ProtractorToolService implements PassiveTool {
 
     return {
       matched,
-      reason: matched ? '✅ Perfect alignment! You can proceed to draw the required angle.' : reason,
+      reason: matched
+        ? '✅ Perfect alignment! You can proceed to draw the required angle.'
+        : reason,
       outputObject,
     };
   }
@@ -148,6 +151,12 @@ export class ProtractorToolService implements PassiveTool {
 
   lockProtractor() {
     this.locked = !this.locked;
+    console.log('lockProtractor', this.locked);
+    return this.locked;
+  }
+
+  resetLock() {
+    this.locked = false;
     return this.locked;
   }
 

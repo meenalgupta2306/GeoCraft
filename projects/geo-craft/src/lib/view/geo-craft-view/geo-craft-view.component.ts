@@ -11,11 +11,10 @@ import {
 import { CanvasRendererService } from '../services/canvas-renderer.service';
 import { ToolManagerService } from '../../controller/tool-manager.service';
 import { ViewStateService } from '../services/view-state.service';
-import { EventLogService } from '../../controller/event-log.service';
-import { ConstructionService } from '../../controller/construction.service';
 import { ValidationService } from '../../controller/validation.service';
 import { config } from '../../config/config.json';
 import { PointToolService } from '../../controller/tools/point-tool.service';
+import { ProtractorToolService } from '../../controller/tools/protractor-tool.service';
 
 @Component({
   selector: 'lib-geo-craft-view',
@@ -35,10 +34,9 @@ export class GeoCraftViewComponent implements AfterViewInit {
     public toolManager: ToolManagerService,
     private renderer: CanvasRendererService,
     public viewState: ViewStateService,
-    private eventLog: EventLogService,
-    private construction: ConstructionService,
     private validationService: ValidationService,
-    private pointToolService: PointToolService
+    private pointToolService: PointToolService,
+    private protractorToolService: ProtractorToolService
   ) {}
   ngOnChanges(changes: SimpleChanges) {
     if (changes['currentQuestionCount']?.currentValue !== undefined) {
@@ -51,6 +49,8 @@ export class GeoCraftViewComponent implements AfterViewInit {
     this.viewState.clear();
     this.viewState.clearPreviewDrawables();
     this.pointToolService.resetLabelCount();
+    this.protractorToolService.protractorNeedsReset = true;
+
     this.render();
   }
 
