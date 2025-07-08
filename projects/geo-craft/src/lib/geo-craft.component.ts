@@ -14,7 +14,8 @@ import { EventLogService } from './controller/event-log.service';
 import { ToolManagerService } from './controller/tool-manager.service';
 import { GeoCraftViewComponent } from './view/geo-craft-view/geo-craft-view.component';
 import { ToolBarComponent } from './view/tool-bar/tool-bar.component';
-
+import { HintGenerationService } from './view/services/hint-generation.service';
+import {identifyStepInstruction, questionFormat, hintGenerationPrompt} from "./config/prompts/prompt";
 @Component({
   selector: 'lib-geo-craft',
   templateUrl: './geo-craft.component.html',
@@ -48,14 +49,33 @@ export class GeoCraftComponent implements OnInit {
     private validationService: ValidationService,
     private constructionService: ConstructionService,
     private eventLogService: EventLogService,
-    private toolManager: ToolManagerService
+    private toolManager: ToolManagerService,
+    private hintGenerationService: HintGenerationService
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit() {
     this.viewState.setCanvasConfig(this.config);
     this.viewState.errorMessage.subscribe((msg) => {
       this.validationMessage.emit(msg);
     });
+    const prompt = identifyStepInstruction + questionFormat((this.questions[this.currentQuestion]), config[this.currentQuestion].steps);
+    console.log(prompt);
+
+    await this.hintGenerationService.createAssistant(
+      'step',
+      'Step Identifier',
+      prompt
+    )
+
+    await this.hintGenerationService.createThreadFor('step')
+    console.log(hintGenerationPrompt)
+    await this.hintGenerationService.createAssistant(
+      'hint',
+      'Hint Evaluator',
+      hintGenerationPrompt
+    )
+
+    await this.hintGenerationService.createThreadFor('hint')
   }
 
   toggle() {

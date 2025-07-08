@@ -13,6 +13,7 @@
       ]
     },
     "resolveJsonModule": true,
+    "allowJs": true,
     "esModuleInterop": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,

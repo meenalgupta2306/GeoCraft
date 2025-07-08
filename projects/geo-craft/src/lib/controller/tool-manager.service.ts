@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import {
   InteractiveTool,
-  isInteractiveTool,
-  PassiveTool,
+  isInteractiveTool
 } from './interfaces/tools-interface';
+import { PassiveTool } from './interfaces/passiveTool-interface';
 import { PointToolService } from './tools/point-tool.service';
 import { SegmentToolService } from './tools/segment-tool.service';
 import { ProtractorToolService } from './tools/protractor-tool.service';

@@ -19,13 +19,14 @@ import { ProtractorToolService } from '../../controller/tools/protractor-tool.se
 import { SegmentToolService } from '../../controller/tools/segment-tool.service';
 import { ConstructionService } from '../../controller/construction.service';
 import { EventLogService } from '../../controller/event-log.service';
+import { GeoRef } from '../../controller/interfaces/geoRef';
 
 @Component({
   selector: 'lib-geo-craft-view',
   templateUrl: './geo-craft-view.component.html',
   styleUrls: ['./geo-craft-view.component.scss'],
 })
-export class GeoCraftViewComponent implements AfterViewInit {
+export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
   @ViewChild('canvasContainer', { static: true })
   canvasRef!: ElementRef<HTMLCanvasElement>;
   private canvas!: HTMLCanvasElement;

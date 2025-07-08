@@ -1,19 +1,19 @@
 import { LineSegment } from "../model/segment";
 import { CanvasRendererService } from "../view/services/canvas-renderer.service";
-import { GeoCraftViewComponent } from "../view/geo-craft-view/geo-craft-view.component";
-
+import { GeoRef } from "../controller/interfaces/geoRef";
 export class DrawSegment {
-  constructor(private segment: LineSegment, private isPreview: boolean = false) {
+  constructor(
+    private segment: LineSegment, 
+    private isPreview: boolean = false,
+  ) {
   }
 
- render(renderer: CanvasRendererService, view: GeoCraftViewComponent) {
-    const { start, end } = this.segment;
-
+ render(renderer: CanvasRendererService, view: GeoRef) {
+    const { start, end } = this.segment
     const x1 = view.toScreenX(start.x);
     const y1 = view.toScreenY(start.y);
     const x2 = view.toScreenX(end.x);
     const y2 = view.toScreenY(end.y);
-
     // Draw the segment line
     renderer.setStrokeStyle(this.isPreview ? '#888' : '#000');
     renderer.setLineWidth(this.isPreview ? 1 : 2);

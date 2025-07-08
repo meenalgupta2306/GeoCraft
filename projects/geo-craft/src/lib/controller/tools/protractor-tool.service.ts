@@ -1,5 +1,5 @@
 import { Injectable, Injector } from '@angular/core';
-import { PassiveTool } from '../interfaces/tools-interface';
+import { PassiveTool } from '../interfaces/passiveTool-interface';
 import { ValidationResult } from '../interfaces/validationResult-interface';
 import { ViewStateService } from '../../view/services/view-state.service';
 import { ValidationService } from '../validation.service';

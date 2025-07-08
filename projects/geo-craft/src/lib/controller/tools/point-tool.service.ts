@@ -5,9 +5,9 @@ import { DrawPoint } from '../../drawable/draw-point';
 import { ConstructionService } from '../construction.service';
 import { EventLogService } from '../event-log.service';
 import { ViewStateService } from '../../view/services/view-state.service';
-import { GeoCraftViewComponent } from '../../view/geo-craft-view/geo-craft-view.component';
 import { ValidationResult } from '../interfaces/validationResult-interface';
 import { ValidationService } from '../validation.service';
+import { GeoRef } from '../interfaces/geoRef';
 
 @Injectable({
   providedIn: 'root',
@@ -40,7 +40,7 @@ export class PointToolService implements InteractiveTool {
   }
 
   // Called when pen/finger touches down: show glowing preview
-  handlePointerDown(view: GeoCraftViewComponent, x: number, y: number): void {
+  handlePointerDown(view: GeoRef, x: number, y: number): void {
     this.currentLabel = this.getNextLabel();
     this.point = new Point(x, y, this.currentLabel);
     const drawPoint = new DrawPoint(this.point);
@@ -52,7 +52,7 @@ export class PointToolService implements InteractiveTool {
   }
 
   // Called when pen/finger lifts: confirm or cancel creation
-  handlePointerUp(view: GeoCraftViewComponent, x: number, y: number): void {
+  handlePointerUp(view: GeoRef, x: number, y: number): void {
     if (!this.previewPoint) return;
 
     // If a point already exists nearby, cancel the preview

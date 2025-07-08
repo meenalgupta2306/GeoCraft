@@ -4,12 +4,12 @@ import { Point } from '../../model/point';
 import { ConstructionService } from '../construction.service';
 import { ViewStateService } from '../../view/services/view-state.service';
 import { LineSegment } from '../../model/segment';
-import { GeoCraftViewComponent } from '../../view/geo-craft-view/geo-craft-view.component';
 import { DrawSegment } from '../../drawable/draw-segment';
 import { DrawPoint } from '../../drawable/draw-point';
 import { PointToolService } from './point-tool.service';
 import { ValidationResult } from '../interfaces/validationResult-interface';
 import { ValidationService } from '../validation.service';
+import { GeoRef } from '../interfaces/geoRef';
 
 @Injectable({
   providedIn: 'root',
@@ -45,7 +45,7 @@ export class SegmentToolService implements InteractiveTool {
     this.previewEndPoint = null;
   }
 
-  handlePointerDown(view: GeoCraftViewComponent, x: number, y: number): void {
+  handlePointerDown(view: GeoRef, x: number, y: number): void {
     // const label = this.pointToolService.getNextLabel();
     let point = this.findNearbyPoint(x, y);
     if (!point) {
@@ -79,7 +79,7 @@ export class SegmentToolService implements InteractiveTool {
     this.validationService.startValidation();
   }
 
-  handlePointerUp(view: GeoCraftViewComponent): void {
+  handlePointerUp(view: GeoRef): void {
     // If only one point tapped, do nothing
     if (!this.segment || !this.previewEndPoint || !this.previewStartPoint)
       return;

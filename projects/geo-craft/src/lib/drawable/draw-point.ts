@@ -1,14 +1,14 @@
 import { Point } from '../model/point';
 import { CanvasRendererService } from '../view/services/canvas-renderer.service';
-import { GeoCraftViewComponent } from '../view/geo-craft-view/geo-craft-view.component';
 import { config } from '../config/default-styles.json';
+import { GeoRef } from '../controller/interfaces/geoRef';
 export class DrawPoint {
   private isGlowing: boolean = false;
   private isSelected: boolean = false;
 
   constructor(private point: Point, private isTemporary: boolean = false) {}
 
-  render(renderer: CanvasRendererService, view: GeoCraftViewComponent) {
+  render(renderer: CanvasRendererService, view: GeoRef) {
     const x = view.toScreenX(this.point.x);
     const y = view.toScreenY(this.point.y);
 
