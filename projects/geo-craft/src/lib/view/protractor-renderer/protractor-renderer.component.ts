@@ -5,6 +5,7 @@ import {
   ElementRef,
   AfterViewInit,
   ChangeDetectorRef,
+  Output,
 } from '@angular/core';
 import { ViewStateService } from '../services/view-state.service';
 import { ValidationService } from '../../controller/validation.service';
@@ -13,6 +14,7 @@ import { ProtractorToolService } from '../../controller/tools/protractor-tool.se
 import { Point } from '../../model/point';
 import { Protractor } from '../../model/protractor';
 import { LineSegment } from '../../model/segment';
+import { EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'lib-protractor-renderer',
@@ -41,6 +43,8 @@ export class ProtractorRendererComponent implements AfterViewInit {
 
   innerRadius = 150;
   private blockingRegionUpdateTimeout: any = null;
+
+  @Output() notify = new EventEmitter<string>();
 
   constructor(
     public viewState: ViewStateService,
@@ -241,8 +245,7 @@ export class ProtractorRendererComponent implements AfterViewInit {
       if (this.locked) {
         this.validateProtractorPlacement();
       }
-      console.log('locked', this.locked);
-      alert(`${this.locked ? 'locked' : 'unlocked'}`);
+      this.notify.emit(`Protractor ${this.locked ? 'locked' : 'unlocked'}`);
     }
   };
 

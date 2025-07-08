@@ -28,6 +28,8 @@ export class GeoCraftViewComponent implements AfterViewInit {
 
   private ctx!: CanvasRenderingContext2D;
 
+  notificationMessage: string | null = null;
+
   @Input() currentQuestionCount!: number;
 
   constructor(
@@ -52,6 +54,13 @@ export class GeoCraftViewComponent implements AfterViewInit {
     this.protractorToolService.protractorNeedsReset = true;
 
     this.render();
+  }
+
+  showNotification(message: string) {
+    this.notificationMessage = message;
+    setTimeout(() => {
+      this.notificationMessage = null;
+    }, 3500);
   }
 
   ngAfterViewInit() {
