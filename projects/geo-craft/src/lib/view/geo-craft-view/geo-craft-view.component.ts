@@ -15,6 +15,7 @@ import { ValidationService } from '../../controller/validation.service';
 import { config } from '../../config/config.json';
 import { PointToolService } from '../../controller/tools/point-tool.service';
 import { ProtractorToolService } from '../../controller/tools/protractor-tool.service';
+import { SegmentToolService } from '../../controller/tools/segment-tool.service';
 
 @Component({
   selector: 'lib-geo-craft-view',
@@ -31,6 +32,7 @@ export class GeoCraftViewComponent implements AfterViewInit {
   notificationMessage: string | null = null;
 
   @Input() currentQuestionCount!: number;
+  @Input() resetCanvas: boolean = false;
 
   constructor(
     public toolManager: ToolManagerService,
@@ -38,10 +40,14 @@ export class GeoCraftViewComponent implements AfterViewInit {
     public viewState: ViewStateService,
     private validationService: ValidationService,
     private pointToolService: PointToolService,
-    private protractorToolService: ProtractorToolService
+    private protractorToolService: ProtractorToolService,
+    private segmentToolService: SegmentToolService
   ) {}
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['currentQuestionCount']?.currentValue !== undefined) {
+    if (
+      changes['currentQuestionCount']?.currentValue !== undefined ||
+      changes['resetCanvas']?.currentValue === true
+    ) {
       this.resetView();
     }
   }
@@ -50,9 +56,10 @@ export class GeoCraftViewComponent implements AfterViewInit {
     this.renderer.clear(this.canvas.width, this.canvas.height);
     this.viewState.clear();
     this.viewState.clearPreviewDrawables();
-    this.pointToolService.resetLabelCount();
+    this.pointToolService.reset();
     this.protractorToolService.protractorNeedsReset = true;
-
+    this.segmentToolService.reset();
+    console.log('Reset');
     this.render();
   }
 
@@ -162,12 +169,14 @@ export class GeoCraftViewComponent implements AfterViewInit {
 
   render() {
     this.renderer.clear(this.canvas.width, this.canvas.height);
-
+    console.log('render');
     //Draw grid if enabled
     this.drawGrid(this.renderer, this.viewState.showGrid);
     this.viewState.getDrawables().forEach((d) => {
       d.render(this.renderer, this);
     });
+    console.log('drawables', this.viewState.getDrawables());
+    console.log('preview', this.viewState.getPreviewDrawables());
     // Draw preview (temporary) items
     this.viewState
       .getPreviewDrawables()

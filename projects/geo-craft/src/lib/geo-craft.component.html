@@ -8,6 +8,9 @@
       <b>{{ questions[currentQuestion] }}</b>
     </h5>
     <div class="question-controls">
+      <button (click)="clearCanvas()" class="icon-btn" title="Clear Canvas">
+        🗑️
+      </button>
       <button (click)="toggle()" class="icon-btn" title="Toggle Toolbar">
         ☰
       </button>
@@ -21,6 +24,7 @@
     <div class="canvas-area">
       <lib-geo-craft-view
         [currentQuestionCount]="currentQuestion"
+        [resetCanvas]="resetCanvas"
       ></lib-geo-craft-view>
     </div>
   </div>

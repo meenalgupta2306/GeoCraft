@@ -16,7 +16,7 @@ export class PointToolService implements InteractiveTool {
   private previewPoint: DrawPoint | null = null;
   private pointCount = 0;
   private currentLabel: string | null = null;
-  private point!: Point;
+  private point: Point | null = null;
   private _validationService?: ValidationService;
 
   constructor(
@@ -122,7 +122,10 @@ export class PointToolService implements InteractiveTool {
     return label;
   }
 
-  resetLabelCount(): void {
+  reset() {
+    this.point = null;
+    this.previewPoint = null;
     this.pointCount = 0;
+    this.currentLabel = null;
   }
 }

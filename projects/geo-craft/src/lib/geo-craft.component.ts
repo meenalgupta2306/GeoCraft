@@ -33,6 +33,7 @@ export class GeoCraftComponent implements OnInit {
 
   openToolBar: boolean = true;
   currentQuestion = 0;
+  resetCanvas = false;
 
   questions = [
     '1. Plot each of the following points:  (-3, 0)  (3,0)  (1.2, 2.5)',
@@ -78,5 +79,12 @@ export class GeoCraftComponent implements OnInit {
     if (this.toolBarComponent) {
       this.toolBarComponent.clearSelectedTools();
     }
+  }
+
+  clearCanvas() {
+    this.resetCanvas = true;
+    setTimeout(() => {
+      this.resetCanvas = false;
+    }, 0);
   }
 }

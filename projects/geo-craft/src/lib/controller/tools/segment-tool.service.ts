@@ -10,7 +10,6 @@ import { DrawPoint } from '../../drawable/draw-point';
 import { PointToolService } from './point-tool.service';
 import { ValidationResult } from '../interfaces/validationResult-interface';
 import { ValidationService } from '../validation.service';
-import { ProtractorToolService } from './protractor-tool.service';
 
 @Injectable({
   providedIn: 'root',
@@ -38,15 +37,16 @@ export class SegmentToolService implements InteractiveTool {
     return this._validationService;
   }
 
-  private get protractorToolService(): ProtractorToolService {
-    return this.injector.get(ProtractorToolService);
+  reset() {
+    this.startPoint = null;
+    this.endPoint = null;
+    this.segment = null;
+    this.previewStartPoint = null;
+    this.previewEndPoint = null;
   }
 
   handlePointerDown(view: GeoCraftViewComponent, x: number, y: number): void {
     // const label = this.pointToolService.getNextLabel();
-    if (this.protractorToolService.isPointInBlockedArea(x, y)) {
-      return; // Ignore interaction inside protractor
-    }
     let point = this.findNearbyPoint(x, y);
     if (!point) {
       const label = this.pointToolService.getNextLabel();
@@ -67,7 +67,6 @@ export class SegmentToolService implements InteractiveTool {
       this.previewEndPoint.setGlow(true);
 
       this.segment = new LineSegment(this.startPoint, this.endPoint);
-
       // Add preview segment only (not final yet)
       this.viewStateService.setPreviewDrawables([
         this.previewStartPoint!,

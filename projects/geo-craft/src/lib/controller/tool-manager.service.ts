@@ -52,7 +52,6 @@ export class ToolManagerService {
     this.activeToolName = toolName;
 
     if (isPassive) {
-      this.activeTool = null;
       this.renderedToolSet.add(toolName);
       return;
     }

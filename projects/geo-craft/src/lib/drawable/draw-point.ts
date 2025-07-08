@@ -1,7 +1,7 @@
 import { Point } from '../model/point';
 import { CanvasRendererService } from '../view/services/canvas-renderer.service';
 import { GeoCraftViewComponent } from '../view/geo-craft-view/geo-craft-view.component';
-import {config} from '../config/default-styles.json';
+import { config } from '../config/default-styles.json';
 export class DrawPoint {
   private isGlowing: boolean = false;
   private isSelected: boolean = false;
@@ -16,11 +16,11 @@ export class DrawPoint {
       renderer.drawCircle(x, y, config.point.glow.radius, true);
     }
 
-    renderer.drawCircle(x, y, config.point.radius); 
+    renderer.drawCircle(x, y, config.point.radius);
 
     if (this.point.label) {
-    renderer.drawText(this.point.label, x + 8, y - 8); 
-  }
+      renderer.drawText(this.point.label, x + 8, y - 8);
+    }
   }
   setGlow(active: boolean) {
     this.isGlowing = active;
