@@ -83,6 +83,19 @@ export class GeoCraftComponent implements OnInit {
 
   clearCanvas() {
     this.resetCanvas = true;
+    this.toolManager.resetTools(); // ✅ Clear tools (active/passive)
+    this.constructionService.clear(); // ✅ Clear geoElements
+    this.validationService.reset(); // ✅ Clear completed/deferred steps
+    this.eventLogService.clear(); // ✅ Clear logs
+
+    this.validationService.loadConfig(config[this.currentQuestion]);
+
+    if (this.viewRef) {
+      this.viewRef.resetView();
+    }
+    if (this.toolBarComponent) {
+      this.toolBarComponent.clearSelectedTools();
+    }
     setTimeout(() => {
       this.resetCanvas = false;
     }, 0);

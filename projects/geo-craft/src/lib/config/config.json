@@ -149,7 +149,7 @@
           "data": {
             "start": { "label": "A" },
             "end": { "label": "C" },
-            "angle": 120,
+            "angle": 90,
             "operator": ">"
           },
           "depends": [2]

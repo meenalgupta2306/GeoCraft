@@ -203,7 +203,13 @@ export class SegmentToolService implements InteractiveTool {
         2
       )} cm. Try adjusting it.`;
     } else if (!angleValid) {
-      reason = `The angle of your segment should be around ${data.angle} degrees. Try adjusting it.`;
+      reason = `The angle of your segment should be ${
+        data.operator === '>'
+          ? 'greater than'
+          : data.operator === '<'
+          ? 'less than'
+          : 'equal to'
+      } ${data.angle} degrees. Try adjusting it.`;
     }
 
     const isValid = isMatch && lengthValid && angleValid;
