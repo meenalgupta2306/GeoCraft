@@ -7,6 +7,7 @@ import {
   AfterViewInit,
   SimpleChanges,
   Input,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CanvasRendererService } from '../services/canvas-renderer.service';
 import { ToolManagerService } from '../../controller/tool-manager.service';
@@ -16,6 +17,8 @@ import { config } from '../../config/config.json';
 import { PointToolService } from '../../controller/tools/point-tool.service';
 import { ProtractorToolService } from '../../controller/tools/protractor-tool.service';
 import { SegmentToolService } from '../../controller/tools/segment-tool.service';
+import { ConstructionService } from '../../controller/construction.service';
+import { EventLogService } from '../../controller/event-log.service';
 
 @Component({
   selector: 'lib-geo-craft-view',
@@ -41,7 +44,10 @@ export class GeoCraftViewComponent implements AfterViewInit {
     private validationService: ValidationService,
     private pointToolService: PointToolService,
     private protractorToolService: ProtractorToolService,
-    private segmentToolService: SegmentToolService
+    private segmentToolService: SegmentToolService,
+    private constructionService: ConstructionService,
+    private eventLogService: EventLogService,
+    private cdr: ChangeDetectorRef
   ) {}
   ngOnChanges(changes: SimpleChanges) {
     if (
@@ -59,15 +65,22 @@ export class GeoCraftViewComponent implements AfterViewInit {
     this.pointToolService.reset();
     this.protractorToolService.protractorNeedsReset = true;
     this.segmentToolService.reset();
+    this.toolManager.resetTools();
+    this.constructionService.clear();
+    this.validationService.reset();
+    this.eventLogService.clear();
     console.log('Reset');
     this.render();
   }
 
   showNotification(message: string) {
     this.notificationMessage = message;
+    console.log('notificationMessage', this.notificationMessage);
+    this.cdr.detectChanges();
     setTimeout(() => {
-      this.notificationMessage = null;
-    }, 3500);
+      this.notificationMessage = null; // <-- use null instead of ''
+      this.cdr.detectChanges(); // make sure it re-evaluates *ngIf
+    }, 2000);
   }
 
   ngAfterViewInit() {

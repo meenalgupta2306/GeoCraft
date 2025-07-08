@@ -33,16 +33,9 @@
   padding: 12px 20px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  font-size: 18px;
+  font-size: 16px;
   z-index: 1000;
   opacity: 0.95;
-  animation: fadeOut 0.5s ease-in-out 3s forwards;
-}
-
-@keyframes fadeOut {
-  to {
-    opacity: 0;
-    transform: translateY(-10px);
-    pointer-events: none;
-  }
+  pointer-events: none;
+  transition: opacity 0.2s ease;
 }

@@ -241,6 +241,7 @@ export class ProtractorRendererComponent implements AfterViewInit {
 
     if (this.isPointInProtractor(localX, localY)) {
       this.locked = this.protractorToolService.lockProtractor();
+      console.log('lockProtractor', this.locked);
       this.updateBlockingRegion();
       if (this.locked) {
         this.validateProtractorPlacement();
