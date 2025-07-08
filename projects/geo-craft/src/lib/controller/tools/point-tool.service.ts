@@ -84,7 +84,8 @@ export class PointToolService implements InteractiveTool {
       const dx = geoElement.x - coordinate[0];
       const dy = geoElement.y - coordinate[1];
       const distance = Math.hypot(dx, dy);
-      const coordValid = distance <= this.viewState.toleranceFactor;
+      const coordValid =
+        distance <= this.viewState.toleranceFactor.segmentCoordinate;
 
       if (!coordValid) {
         return {

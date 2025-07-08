@@ -43,7 +43,6 @@ export class SegmentToolService implements InteractiveTool {
   }
 
   handlePointerDown(view: GeoCraftViewComponent, x: number, y: number): void {
-    debugger;
     // const label = this.pointToolService.getNextLabel();
     if (this.protractorToolService.isPointInBlockedArea(x, y)) {
       return; // Ignore interaction inside protractor
@@ -78,6 +77,7 @@ export class SegmentToolService implements InteractiveTool {
     }
 
     view.render();
+    this.validationService.startValidation();
   }
 
   handlePointerUp(view: GeoCraftViewComponent): void {
@@ -123,7 +123,8 @@ export class SegmentToolService implements InteractiveTool {
     geoElement: LineSegment,
     labelSensitive: boolean
   ): ValidationResult {
-    debugger;
+    let reason = '';
+
     if (!step?.id || !step.data) {
       return {
         matched: false,
@@ -144,7 +145,8 @@ export class SegmentToolService implements InteractiveTool {
 
     const coordMatch = (point: any, expected?: number[]) =>
       !expected ||
-      Math.hypot(point.x - expected[0], point.y - expected[1]) <= epsilon;
+      Math.hypot(point.x - expected[0], point.y - expected[1]) <=
+        epsilon.segmentCoordinate;
 
     const labelMatch = (point: any, expectedLabel?: string) =>
       !labelSensitive || !expectedLabel || point.label === expectedLabel;
@@ -167,7 +169,8 @@ export class SegmentToolService implements InteractiveTool {
     let lengthValid = true;
     if (typeof data.length === 'number') {
       const segmentLength = geoElement.getLength();
-      lengthValid = Math.abs(segmentLength - data.length) <= epsilon;
+      lengthValid =
+        Math.abs(segmentLength - data.length) <= epsilon.segmentLength;
     }
 
     let angleValid = false;
@@ -194,17 +197,27 @@ export class SegmentToolService implements InteractiveTool {
     } else {
       angleValid = true; // No angle check if not specified
     }
+    if (!isMatch) {
+      reason = `Looks like the points of your segment aren’t quite right. Try placing them more accurately and check if the point names match the instructions.`;
+    } else if (!lengthValid) {
+      reason = `The length of your segment should be around ${data.length.toFixed(
+        2
+      )} cm. Try adjusting it.`;
+    } else if (!angleValid) {
+      reason = `The angle of your segment should be around ${data.angle} degrees. Try adjusting it.`;
+    }
 
     const isValid = isMatch && lengthValid && angleValid;
 
     if (isValid) {
       return {
         matched: true,
+        reason: `✅ Great job! The segment looks perfect.`,
       };
     } else {
       return {
         matched: false,
-        reason: `Segment is not appropriate`,
+        reason: reason,
       };
     }
   }
@@ -215,11 +228,14 @@ export class SegmentToolService implements InteractiveTool {
     expectedAngle: number,
     operator: string = '='
   ): boolean {
-    const epsilon = this.viewStateService.toleranceFactor || 2;
-    const inaccuracy = 0.5; // degrees
+    const epsilon = this.viewStateService.toleranceFactor;
+    const inaccuracy = epsilon.segmentAngle; // degrees
 
     const isSamePoint = (p1: any, p2: any): boolean => {
-      return Math.abs(p1.x - p2.x) < epsilon && Math.abs(p1.y - p2.y) < epsilon;
+      return (
+        Math.abs(p1.x - p2.x) < epsilon.segmentCoordinate &&
+        Math.abs(p1.y - p2.y) < epsilon.segmentCoordinate
+      );
     };
 
     // Step 1: Find common point

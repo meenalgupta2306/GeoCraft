@@ -8,7 +8,13 @@ export class ViewStateService {
   showGrid = true;
   snapToGrid = false;
   gridStep = 1;
-  readonly toleranceFactor = 0.04;
+  readonly toleranceFactor = {
+    protractorCenter: 0.05,
+    protractorAlignment: 0.06,
+    segmentCoordinate: 0.07,
+    segmentLength: 0.08,
+    segmentAngle: 0.5,
+  };
 
   // ✅ Coordinate system
   screenOriginX = 400; // will be updated dynamically

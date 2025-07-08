@@ -56,7 +56,7 @@ export class ProtractorToolService implements PassiveTool {
           const dx = protractorCenter.x - vertexPoint.x;
           const dy = protractorCenter.y - vertexPoint.y;
           const distance = Math.hypot(dx, dy);
-          if (distance > this.viewState.toleranceFactor) {
+          if (distance > this.viewState.toleranceFactor.protractorCenter) {
             reason = `Place the protractor's center exactly on point "${vertex}".`;
           } else {
             const { start, end } = step1;
@@ -73,10 +73,10 @@ export class ProtractorToolService implements PassiveTool {
           protractorCenter.x - end.x,
           protractorCenter.y - end.y
         );
-        if (dStart <= this.viewState.toleranceFactor) {
+        if (dStart <= this.viewState.toleranceFactor.protractorAlignment) {
           vertexPoint = start;
           otherPoint = end;
-        } else if (dEnd <= this.viewState.toleranceFactor) {
+        } else if (dEnd <= this.viewState.toleranceFactor.protractorAlignment) {
           vertexPoint = end;
           otherPoint = start;
         } else {
@@ -92,7 +92,7 @@ export class ProtractorToolService implements PassiveTool {
           p1,
           p2,
           p3,
-          this.viewState.toleranceFactor
+          this.viewState.toleranceFactor.protractorAlignment
         );
 
         if (!isCollinear) {
