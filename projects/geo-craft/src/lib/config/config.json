@@ -108,11 +108,11 @@
         {
           "id": 3,
           "tool": "segment",
-          "length": 4,
           "data": {
             "start": { "label": "A" },
             "end": { "label": "C" },
             "angle": 90,
+            "length": 4,
             "operator": "="
           },
           "depends": [2]
@@ -145,7 +145,6 @@
         {
           "id": 3,
           "tool": "segment",
-          "length": 3,
           "data": {
             "start": { "label": "A" },
             "end": { "label": "C" },

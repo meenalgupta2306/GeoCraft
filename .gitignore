@@ -41,5 +41,5 @@ testem.log
 .DS_Store
 Thumbs.db
 
-/projects/geo-craft/src/lib/config/openai.json
+/projects/geo-craft/src/lib/config/llm.json
 

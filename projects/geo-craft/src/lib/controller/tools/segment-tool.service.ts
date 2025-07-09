@@ -23,7 +23,7 @@ export class SegmentToolService implements InteractiveTool {
   private _validationService?: ValidationService;
 
   private previewStartPoint: DrawPoint | null = null;
-  private previewEndPoint: DrawPoint | null = null;
+  private previewEndPoint: DrawPoint | null = null; 
 
   operatorObject = {
     '=': (actual: number, expected: number, inaccuracy: number) =>
@@ -186,11 +186,11 @@ export class SegmentToolService implements InteractiveTool {
         labelMatch(end, expectedStartLabel));
 
     let lengthValid = true;
+    console.log("------------------", data)
     if (typeof data.length === 'number') {
       const segmentLength = geoElement.getLength();
       lengthValid =
         Math.abs(segmentLength - data.length) <= epsilon.segmentLength;
-      obj['lengthRequired'] = data.length;
       obj['lengthConstructed'] = segmentLength;
     }
 
@@ -208,7 +208,8 @@ export class SegmentToolService implements InteractiveTool {
       }
       const angle = data.angle;
       const operator = data.operator || '=';
-
+console.log("expected angle", angle)
+debugger
       const result = this.computeAngleBetweenSegments(
         refSegment.baseSegment,
         geoElement,

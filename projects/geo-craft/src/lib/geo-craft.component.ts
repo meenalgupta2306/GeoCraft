@@ -14,12 +14,13 @@ import { EventLogService } from './controller/event-log.service';
 import { ToolManagerService } from './controller/tool-manager.service';
 import { GeoCraftViewComponent } from './view/geo-craft-view/geo-craft-view.component';
 import { ToolBarComponent } from './view/tool-bar/tool-bar.component';
-import { HintGenerationService } from './view/services/hint-generation.service';
+import { LlmServiceService } from './view/services/llm-service.service';
 import {
   identifyStepInstruction,
   questionFormat,
   hintGenerationPrompt,
 } from './config/prompts/prompt';
+import { AssistantType } from './view/services/llm-service.service';
 @Component({
   selector: 'lib-geo-craft',
   templateUrl: './geo-craft.component.html',
@@ -54,7 +55,7 @@ export class GeoCraftComponent implements OnInit {
     private constructionService: ConstructionService,
     private eventLogService: EventLogService,
     private toolManager: ToolManagerService,
-    private hintGenerationService: HintGenerationService
+    private llm: LlmServiceService
   ) {}
 
   async ngOnInit() {
@@ -70,27 +71,18 @@ export class GeoCraftComponent implements OnInit {
   }
 
   async llmSetup() {
-    const prompt =
-      identifyStepInstruction +
-      questionFormat(
-        this.questions[this.currentQuestion],
-        config[this.currentQuestion].steps
-      );
-    console.log(prompt);
-    await this.hintGenerationService.createAssistant(
-      'step',
-      'Step Identifier',
-      prompt
-    );
+    for (const item of ['step', 'hint'] as AssistantType[]) {
+      let prompt =
+        item === 'step'
+          ? identifyStepInstruction +
+            questionFormat(
+              this.questions[this.currentQuestion],
+              config[this.currentQuestion].steps
+            )
+          : hintGenerationPrompt + this.questions[this.currentQuestion];
 
-    await this.hintGenerationService.createThreadFor('step');
-    await this.hintGenerationService.createAssistant(
-      'hint',
-      'Hint Evaluator',
-      hintGenerationPrompt
-    );
-
-    await this.hintGenerationService.createThreadFor('hint');
+      await this.llm.setSystemPrompt(item, prompt);
+    }
   }
 
   async next() {

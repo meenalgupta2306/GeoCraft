@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { openaiConfig } from '../../config/openai.json';
+import { openaiConfig } from '../../config/llm.json';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
@@ -149,7 +149,6 @@ export class HintGenerationService {
       completedStepMapObject,
     });
 
-    console.log(prompt)
     const response = await this.askAssistant(assistantId, threadId, prompt);
     return response;
   }
