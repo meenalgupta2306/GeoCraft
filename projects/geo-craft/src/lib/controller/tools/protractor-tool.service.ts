@@ -44,6 +44,8 @@ export class ProtractorToolService implements PassiveTool {
       const protractorCenter = geoElement.center;
       const step1 = this.validationService.getGeoElementByStepId(depends[0]);
 
+      outputObject = new LineSegment(step1.start, step1.end);
+
       let vertexPoint: any = null;
       let otherPoint: any = null;
 
@@ -99,21 +101,21 @@ export class ProtractorToolService implements PassiveTool {
           reason = `The protractor's base must align with the segment.`;
         } else {
           matched = true;
-          outputObject = new LineSegment(step1.start, step1.end);
+          // outputObject = new LineSegment(step1.start, step1.end);
         }
       }
     }
 
-    if (!matched && reason) {
-      this.viewState.emitmessage(reason); // ✅ Single point for message
-    }
+    // if (!matched && reason) {
+    //   this.viewState.emitmessage(reason); // ✅ Single point for message
+    // }
 
     return {
       matched,
       reason: matched
         ? '✅ Perfect alignment! You can proceed to draw the required angle.'
         : reason,
-      outputObject,
+      data: {baseSegement: outputObject},
     };
   }
 
@@ -151,7 +153,6 @@ export class ProtractorToolService implements PassiveTool {
 
   lockProtractor() {
     this.locked = !this.locked;
-    console.log('lockProtractor', this.locked);
     return this.locked;
   }
 

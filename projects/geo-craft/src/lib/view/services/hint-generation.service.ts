@@ -14,13 +14,15 @@ export class HintGenerationService {
     [key: string]: { assistantID: string; threadID?: string };
   } = {};
 
-  private baseUrl = openaiConfig.openAIBaseUrl;
+  private baseUrl = openaiConfig.baseUrl;
   private headers = new HttpHeaders({
-    Authorization: `Bearer ${openaiConfig.openAIKey}`,
+    Authorization: `Bearer ${openaiConfig.apiKey}`,
     'Content-Type': 'application/json',
     'OpenAI-Beta': 'assistants=v2',
     Accept: 'application/json',
   });
+
+  questionConfig: any;
 
   constructor(private http: HttpClient) {}
 
@@ -29,12 +31,11 @@ export class HintGenerationService {
     name: string,
     instructions: string
   ): Promise<string> {
-    console.log('creatign assistant ----------------');
     const url = `${this.baseUrl}/assistants`;
     const body = {
       name,
       instructions,
-      model: 'gpt-4o',
+      model: openaiConfig.model,
     };
     const res: any = await firstValueFrom(
       this.http.post(url, body, { headers: this.headers })
@@ -43,7 +44,6 @@ export class HintGenerationService {
     this.assistantRegistry[type] = {
       assistantID: res.id,
     };
-    console.log(this.assistantRegistry);
     return res.id;
   }
 
@@ -114,7 +114,7 @@ export class HintGenerationService {
     return this.assistantRegistry[type]?.threadID ?? '';
   }
 
-  async identifyStep(userObject: any, completedStepMap: any): Promise<string> {
+  async identifyStep(userObject: any, pendingSteps: any, labelSensitive: boolean): Promise<string> {
     const assistantId = this.getAssistantID('step');
     const threadId = this.getThreadID('step');
 
@@ -125,8 +125,10 @@ export class HintGenerationService {
     // Prepare a combined prompt with user data and completed steps
     const prompt = JSON.stringify({
       userObject,
-      completedStepMap,
+      pendingSteps,
+      labelSensitive
     });
+    console.log("step idntification prompt:", prompt)
 
     const response = await this.askAssistant(assistantId, threadId, prompt);
     return response;
@@ -139,16 +141,20 @@ export class HintGenerationService {
       throw new Error('Assistant or thread not initialized');
     }
 
+    const completedStepMapObject= Object.fromEntries(completedStepMap);
+
     // Prepare a combined prompt with user data and completed steps
     const prompt = JSON.stringify({
       config,
-      completedStepMap,
+      completedStepMapObject,
     });
 
+    console.log(prompt)
     const response = await this.askAssistant(assistantId, threadId, prompt);
     return response;
   }
   parseResponse(str: any) {
+    if (!str) return;
     // Remove markdown JSON code block wrappers
     let cleaned = str.replace(/^```json|```$/g, '').trim();
 
@@ -187,5 +193,9 @@ export class HintGenerationService {
         };
       }
     }
+  }
+
+  setQuestionConfig(config: any) {
+    this.questionConfig = config;
   }
 }

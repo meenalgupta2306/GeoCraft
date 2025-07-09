@@ -70,13 +70,11 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
     this.constructionService.clear();
     this.validationService.reset();
     this.eventLogService.clear();
-    console.log('Reset');
     this.render();
   }
 
   showNotification(message: string) {
     this.notificationMessage = message;
-    console.log('notificationMessage', this.notificationMessage);
     this.cdr.detectChanges();
     setTimeout(() => {
       this.notificationMessage = null; // <-- use null instead of ''
@@ -183,14 +181,11 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
 
   render() {
     this.renderer.clear(this.canvas.width, this.canvas.height);
-    console.log('render');
     //Draw grid if enabled
     this.drawGrid(this.renderer, this.viewState.showGrid);
     this.viewState.getDrawables().forEach((d) => {
       d.render(this.renderer, this);
     });
-    console.log('drawables', this.viewState.getDrawables());
-    console.log('preview', this.viewState.getPreviewDrawables());
     // Draw preview (temporary) items
     this.viewState
       .getPreviewDrawables()

@@ -15,7 +15,11 @@ import { ToolManagerService } from './controller/tool-manager.service';
 import { GeoCraftViewComponent } from './view/geo-craft-view/geo-craft-view.component';
 import { ToolBarComponent } from './view/tool-bar/tool-bar.component';
 import { HintGenerationService } from './view/services/hint-generation.service';
-import {identifyStepInstruction, questionFormat, hintGenerationPrompt} from "./config/prompts/prompt";
+import {
+  identifyStepInstruction,
+  questionFormat,
+  hintGenerationPrompt,
+} from './config/prompts/prompt';
 @Component({
   selector: 'lib-geo-craft',
   templateUrl: './geo-craft.component.html',
@@ -58,31 +62,38 @@ export class GeoCraftComponent implements OnInit {
     this.viewState.errorMessage.subscribe((msg) => {
       this.validationMessage.emit(msg);
     });
-    const prompt = identifyStepInstruction + questionFormat((this.questions[this.currentQuestion]), config[this.currentQuestion].steps);
-    console.log(prompt);
-
-    await this.hintGenerationService.createAssistant(
-      'step',
-      'Step Identifier',
-      prompt
-    )
-
-    await this.hintGenerationService.createThreadFor('step')
-    console.log(hintGenerationPrompt)
-    await this.hintGenerationService.createAssistant(
-      'hint',
-      'Hint Evaluator',
-      hintGenerationPrompt
-    )
-
-    await this.hintGenerationService.createThreadFor('hint')
+    await this.llmSetup();
   }
 
   toggle() {
     this.openToolBar = !this.openToolBar;
   }
 
-  next() {
+  async llmSetup() {
+    const prompt =
+      identifyStepInstruction +
+      questionFormat(
+        this.questions[this.currentQuestion],
+        config[this.currentQuestion].steps
+      );
+    console.log(prompt);
+    await this.hintGenerationService.createAssistant(
+      'step',
+      'Step Identifier',
+      prompt
+    );
+
+    await this.hintGenerationService.createThreadFor('step');
+    await this.hintGenerationService.createAssistant(
+      'hint',
+      'Hint Evaluator',
+      hintGenerationPrompt
+    );
+
+    await this.hintGenerationService.createThreadFor('hint');
+  }
+
+  async next() {
     this.currentQuestion++;
     if (this.currentQuestion === 5) this.currentQuestion = 0;
 
@@ -99,6 +110,7 @@ export class GeoCraftComponent implements OnInit {
     if (this.toolBarComponent) {
       this.toolBarComponent.clearSelectedTools();
     }
+    await this.llmSetup();
   }
 
   clearCanvas() {

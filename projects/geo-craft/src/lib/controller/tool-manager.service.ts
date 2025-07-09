@@ -39,7 +39,8 @@ export class ToolManagerService {
       (isPassive && this.renderedToolSet.has(toolName));
 
     if (alreadySelected) {
-      this.activeTool = null;
+      // this.activeTool = null;
+      console.log("--------------------")
       this.activeToolName = null;
 
       if (isPassive) {
@@ -75,6 +76,7 @@ export class ToolManagerService {
   }
 
   handlePointerDown(view: any, x: number, y: number) {
+    console.log("chekc if activ tool present", this.activeTool)
     this.activeTool?.handlePointerDown(view, x, y);
   }
 
@@ -97,6 +99,7 @@ export class ToolManagerService {
 
   resetTools() {
     this.activeTool = null;
+    console.log("here----------------")
     this.activeToolName = null;
     this.renderedToolSet.clear();
 

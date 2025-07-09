@@ -59,12 +59,7 @@ export class ProtractorRendererComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    console.log(
-      'protractorNeedsReset',
-      this.protractorToolService.protractorNeedsReset
-    );
     if (this.protractorToolService.protractorNeedsReset) {
-      console.log('reset');
       this.reset();
       this.protractorToolService.protractorNeedsReset = false;
     }
@@ -91,7 +86,6 @@ export class ProtractorRendererComponent implements AfterViewInit {
   }
 
   reset() {
-    console.log('reset');
     this.locked = this.protractorToolService.resetLock();
 
     this.offsetX = 0;
@@ -241,7 +235,6 @@ export class ProtractorRendererComponent implements AfterViewInit {
 
     if (this.isPointInProtractor(localX, localY)) {
       this.locked = this.protractorToolService.lockProtractor();
-      console.log('lockProtractor', this.locked);
       this.updateBlockingRegion();
       if (this.locked) {
         this.validateProtractorPlacement();

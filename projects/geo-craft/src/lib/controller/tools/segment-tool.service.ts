@@ -11,6 +11,8 @@ import { ValidationResult } from '../interfaces/validationResult-interface';
 import { ValidationService } from '../validation.service';
 import { GeoRef } from '../interfaces/geoRef';
 
+type Operator = '<' | '>' | '=' | '<=' | '>=';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -22,6 +24,23 @@ export class SegmentToolService implements InteractiveTool {
 
   private previewStartPoint: DrawPoint | null = null;
   private previewEndPoint: DrawPoint | null = null;
+
+  operatorObject = {
+    '=': (actual: number, expected: number, inaccuracy: number) =>
+      Math.abs(actual - expected) <= inaccuracy,
+
+    '>': (actual: number, expected: number, inaccuracy: number) =>
+      actual > expected - inaccuracy,
+
+    '<': (actual: number, expected: number, inaccuracy: number) =>
+      actual < expected + inaccuracy,
+
+    '<=': (actual: number, expected: number, inaccuracy: number) =>
+      actual <= expected + inaccuracy,
+
+    '>=': (actual: number, expected: number, inaccuracy: number) =>
+      actual >= expected - inaccuracy,
+  };
 
   constructor(
     private constructionService: ConstructionService,
@@ -76,7 +95,6 @@ export class SegmentToolService implements InteractiveTool {
     }
 
     view.render();
-    this.validationService.startValidation();
   }
 
   handlePointerUp(view: GeoRef): void {
@@ -124,6 +142,8 @@ export class SegmentToolService implements InteractiveTool {
   ): ValidationResult {
     let reason = '';
 
+    let obj: any = {};
+
     if (!step?.id || !step.data) {
       return {
         matched: false,
@@ -170,6 +190,8 @@ export class SegmentToolService implements InteractiveTool {
       const segmentLength = geoElement.getLength();
       lengthValid =
         Math.abs(segmentLength - data.length) <= epsilon.segmentLength;
+      obj['lengthRequired'] = data.length;
+      obj['lengthConstructed'] = segmentLength;
     }
 
     let angleValid = false;
@@ -187,12 +209,14 @@ export class SegmentToolService implements InteractiveTool {
       const angle = data.angle;
       const operator = data.operator || '=';
 
-      angleValid = this.computeAngleBetweenSegments(
+      const result = this.computeAngleBetweenSegments(
         refSegment.baseSegment,
         geoElement,
         angle,
         operator
       );
+      angleValid = result.isValid;
+      obj['angleConstructed'] = result.angleConstructed;
     } else {
       angleValid = true; // No angle check if not specified
     }
@@ -203,7 +227,7 @@ export class SegmentToolService implements InteractiveTool {
         2
       )} cm. Try adjusting it.`;
     } else if (!angleValid) {
-      reason = `The angle of your segment should be around ${data.angle} degrees. Try adjusting it.`;
+      reason = `The angle of your segment should be ${data.angle} degrees. Try adjusting it.`;
     }
 
     const isValid = isMatch && lengthValid && angleValid;
@@ -212,11 +236,13 @@ export class SegmentToolService implements InteractiveTool {
       return {
         matched: true,
         reason: `✅ Great job! The segment looks perfect.`,
+        data: obj,
       };
     } else {
       return {
         matched: false,
         reason: reason,
+        data: obj,
       };
     }
   }
@@ -226,7 +252,7 @@ export class SegmentToolService implements InteractiveTool {
     seg2: any,
     expectedAngle: number,
     operator: string = '='
-  ): boolean {
+  ): any {
     const epsilon = this.viewStateService.toleranceFactor;
     const inaccuracy = epsilon.segmentAngle; // degrees
 
@@ -280,17 +306,25 @@ export class SegmentToolService implements InteractiveTool {
     const angleRad = Math.acos(Math.max(-1, Math.min(1, cosTheta)));
     const actualAngle = (angleRad * 180) / Math.PI;
 
+    const isValid = this.operatorObject[operator as Operator](
+      actualAngle,
+      expectedAngle,
+      inaccuracy
+    );
+    console.log('**************************', isValid, operator, inaccuracy);
     // Step 3: Validate angle
-    switch (operator) {
-      case '=':
-        return Math.abs(actualAngle - expectedAngle) <= inaccuracy;
-      case '>':
-        return actualAngle > expectedAngle - inaccuracy;
-      case '<':
-        return actualAngle < expectedAngle + inaccuracy;
-      default:
-        return false;
-    }
+    // switch (operator) {
+    //   case '=':
+    //     return Math.abs(actualAngle - expectedAngle) <= inaccuracy;
+    //   case '>':
+    //     return actualAngle > expectedAngle - inaccuracy;
+    //   case '<':
+    //     return actualAngle < expectedAngle + inaccuracy;
+    //   default:
+    //     return false;
+    // }
+
+    return { angleConstructed: actualAngle, isValid };
   }
 
   private findNearbyPoint(
@@ -306,6 +340,7 @@ export class SegmentToolService implements InteractiveTool {
       const dx = pt.x - x;
       const dy = pt.y - y;
       const dist = Math.sqrt(dx * dx + dy * dy);
+      console.log(dist, tolerance);
       if (dist <= tolerance) {
         return pt;
       }
