@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { ToolManagerService } from '../../controller/tool-manager.service';
 import { ViewStateService } from '../services/view-state.service';
 @Component({
@@ -30,6 +30,7 @@ export class ToolBarComponent implements OnInit {
   ];
   passiveTools = ['protractor', 'compass'];
   selectedToolNames: Set<string> = new Set();
+  @Input() resetCanvas: boolean = false;
 
   constructor(
     public toolManager: ToolManagerService,
@@ -38,6 +39,12 @@ export class ToolBarComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {}
+
+  ngOnChanges(changes: any) {
+    if (changes['resetCanvas']?.currentValue === true) {
+      this.clearSelectedTools();
+    }
+  }
 
   selectTool(toolName: string) {
     const isPassive = this.passiveTools.includes(toolName);

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {
   InteractiveTool,
-  isInteractiveTool
+  isInteractiveTool,
 } from './interfaces/tools-interface';
 import { PassiveTool } from './interfaces/passiveTool-interface';
 import { PointToolService } from './tools/point-tool.service';
@@ -46,6 +46,7 @@ export class ToolManagerService {
       if (isPassive) {
         this.hideTool(toolName);
         this.protractorTool.clearBlockingRegions(); // ✅ Remove blocked regions
+        this.protractorTool.resetLock();
       }
 
       return;

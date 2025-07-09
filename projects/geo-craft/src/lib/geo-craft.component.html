@@ -19,7 +19,10 @@
   </div>
   <div class="main-body">
     <div [ngClass]="{ sidebar: true, collapsed: !openToolBar }">
-      <lib-tool-bar *ngIf="openToolBar"></lib-tool-bar>
+      <lib-tool-bar
+        *ngIf="openToolBar"
+        [resetCanvas]="resetCanvas"
+      ></lib-tool-bar>
     </div>
     <div class="canvas-area">
       <lib-geo-craft-view
