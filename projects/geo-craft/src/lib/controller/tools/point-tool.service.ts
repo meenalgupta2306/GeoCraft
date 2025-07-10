@@ -106,7 +106,7 @@ export class PointToolService implements InteractiveTool {
         };
       }
     }
-    return { matched: true };
+    return { matched: true, reason: `You have suceesfully plotted the cordinate (${coordinate[0]},${coordinate[1]})` };
   }
   getNextLabel(): string {
     const cycle = Math.floor(this.pointCount / 26);

@@ -242,7 +242,7 @@ debugger
     } else {
       return {
         matched: false,
-        reason: reason,
+        reason: '',
         data: obj,
       };
     }

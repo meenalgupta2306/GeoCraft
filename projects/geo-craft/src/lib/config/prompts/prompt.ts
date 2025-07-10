@@ -106,15 +106,14 @@ const geometryErrorTypes = [
   "YcoordinateSignError",           // Wrong sign used for y — check if y should be positive/negative 
   "BothXYcoordinateSignError",        // Both x and y signs are wrong 
   "partialCoordinateMatch",         // One coordinate is correct, the other is wrong — e.g., x correct but y is incorrect an vice versa
-  "coordinatePrecisionError",       // Small decimal error or rounding issue — e.g., 1.25 vs 1.2
   "axisConfusion",                  // x and y direction misunderstood — e.g., moved vertically for x
   "floatingPoint",                  // Point placed arbitrarily, not snapped to a visible object or grid
   "wrongLabel",                     // Used incorrect point label even if labelSesitive is true — e.g., placed B instead of A
+  "notPerpendicular"                // angle is not at 90 degree
   "lengthError"                     // explain feature of a ruler, relation between cm mm km 
   "toolMisuse",                     // Wrong tool used for the intended construction step
   "reversedSegment",                // Segment endpoints reversed — used (B, A) instead of (A, B) if direction matters
   "viewOriginError",                // Misunderstood where (0, 0) is due to panning/zooming
-  "subgridMiscount",                // Inocrrectly number of boxes based on smallest unit 1 unit = 0.2
   "incorrectAnglePlacementDirection", // Angle measured in wrong direction despite correct base alignmnet— clockwise vs anticlockwise
   "incorrectAnglePlacement",        // Ray or angle marked at incorrect degree despite reasonable base alignment — check protractor usage
   "labelMismatch",                  // Used wrong or mismatched label compared to expected one — could be correct concept but wrong name
@@ -125,17 +124,20 @@ const geometryErrorTypes = [
 Your responsibility is:
 1. Analyse the object structure -> our provided reason, whether validation failed or succeeded, the data with detailed calulational information calculated by us about what user actually did.
 
-2. Compare data given inside userStep with that of data given inside actualStep, use operator value to compare angle it has values like [=,>,<,>=,<=] so you need to compare angle depending on operator, point out all the mistakes you found here 
+2. Compare data given inside userStep with that of data given inside actualStep use rounded values for comparison, use operator value to compare angle it has values like [=,>,<,>=,<=] so you need to compare angle depending on operator, point out all the mistakes you found here 
 
 3. If userStep is completetly irrelevant with that of actualStep or if userStep is not provided gently guide towards next step.
 
+4. You may select more than 1 errorType is applicable according to question and explain all of them.
+
+5. If labelSensitive is false, allow user to use labels as provided in userStep, do not explicitly ask to use labels or endpoints given in the actualStep.
+
 if current step is validated provide a short suceess message and gently ask to proceed to next step without explaining it.
 
-After these analysing all these pick up the most best fit error type from the given list
 
 Our reason plays a crucial factor providing an overview but always base your hint on the *underlying conceptual misunderstanding*. These hints should help the child *learn from their mistake*. 
 
-It must be brief explanation and should be comprised of the follwoing:
+It must be a very short explanation and should be comprised of the follwoing:
 1. what mistake child did  -> clearly point out the mistake include values given in data provided by us
 2. explain what made user do the mistake
 3. tell the step which was needed to be done instead of what child did 
@@ -145,7 +147,7 @@ It must be brief explanation and should be comprised of the follwoing:
 
 In mathematics every step has some base concept if i dont know how to square i wont be able solve pythagorus, so you need to clarify the base concept in maths depending on the mistake.
 
-Respond only in clean JSON format, with  key: message, errorType, labelSensitive. 
+Respond only in clean JSON format, with  key: message, errorType: [list of error types], labelSensitive. 
 
 Very Important:
     - Do NOT wrap the JSON in quotes.
