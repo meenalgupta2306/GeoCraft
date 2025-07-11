@@ -82,7 +82,7 @@
       ]
     },
     {
-      "labelSensitive": true,
+      "labelSensitive": false,
       "steps": [
         {
           "id": 1,

@@ -13,7 +13,7 @@ export class ViewStateService {
     protractorAlignment: 0.06,
     segmentCoordinate: 0.07,
     segmentLength: 0.08,
-    segmentAngle: 0.75,
+    segmentAngle: 0.6,
   };
 
   // ✅ Coordinate system

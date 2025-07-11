@@ -59,7 +59,7 @@ export class ProtractorToolService implements PassiveTool {
           const dy = protractorCenter.y - vertexPoint.y;
           const distance = Math.hypot(dx, dy);
           if (distance > this.viewState.toleranceFactor.protractorCenter) {
-            reason = `Place the protractor's center exactly on point "${vertex}".`;
+            reason = `ProtractorCenterError".`;
           } else {
             const { start, end } = step1;
             otherPoint = start?.label === vertex ? end : start;
@@ -98,7 +98,7 @@ export class ProtractorToolService implements PassiveTool {
         );
 
         if (!isCollinear) {
-          reason = `The protractor's base must align with the segment.`;
+          reason = `ProtractorMisaligned`;
         } else {
           matched = true;
           // outputObject = new LineSegment(step1.start, step1.end);
@@ -113,7 +113,7 @@ export class ProtractorToolService implements PassiveTool {
     return {
       matched,
       reason: matched
-        ? '✅ Perfect alignment! You can proceed to draw the required angle.'
+        ? ' Perfect alignment! You can proceed to draw the required angle.'
         : reason,
       data: {baseSegement: outputObject},
     };

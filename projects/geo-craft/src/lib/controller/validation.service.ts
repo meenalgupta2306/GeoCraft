@@ -133,8 +133,10 @@ export class ValidationService {
     console.log(stepToMatch);
     const stepId = stepToMatch.stepId;
 
+    this.configForHint['errorType'] = stepToMatch.errorType;
     if (!stepId) {
       this.configForHint['userStep'] = null;
+      return;
       // const expectedStep = this.config.steps[stepToMatch.expectedStepId - 1];
       // this.configForHint['expectedStep'] = expectedStep;
     } else {
@@ -161,15 +163,19 @@ export class ValidationService {
           this.config.labelSensitive
         );
         console.log(result);
-        if (result.matched) this.markStepAsCompleted(stepId, lastIndex);
         if (result?.data?.baseSegement) {
           const element = this.constructionService.getGeoElements()[lastIndex];
           element.baseSegment = result.data?.baseSegement;
           this.constructionService.updateGeoElement(lastIndex, element);
         }
+        if (result.matched){ this.markStepAsCompleted(stepId, lastIndex)
+          if(result.reason) this.viewState.emitmessage(
+            this.isComplete()? "Great job! You’ve completed this question successfully!" : result.reason)
+          return ;
+        };
         if (result.data) this.configForHint['userStep']['data'] = {...result.data};
         this.configForHint['validated'] = result.matched;
-        this.configForHint['reason'] = result.reason;
+        this.configForHint['errorType'].push(result.reason);
       }
     }
 

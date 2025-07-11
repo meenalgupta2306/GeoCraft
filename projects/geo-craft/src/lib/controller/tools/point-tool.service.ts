@@ -90,7 +90,7 @@ export class PointToolService implements InteractiveTool {
       if (!coordValid) {
         return {
           matched: false,
-          reason: `Let’s check that point ${geoElement.label} again — is it in the right place?`,
+          // reason: `Let’s check that point ${geoElement.label} again — is it in the right place?`,
         };
       }
     }
@@ -106,7 +106,7 @@ export class PointToolService implements InteractiveTool {
         };
       }
     }
-    return { matched: true, reason: `You have suceesfully plotted the cordinate (${coordinate[0]},${coordinate[1]})` };
+    return { matched: true, reason: `You have successfully plotted the cordinate (${coordinate[0]},${coordinate[1]})` };
   }
   getNextLabel(): string {
     const cycle = Math.floor(this.pointCount / 26);

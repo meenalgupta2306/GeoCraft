@@ -96,6 +96,7 @@ export class GeoCraftComponent implements OnInit {
 
     this.validationService.loadConfig(config[this.currentQuestion]);
 
+    this.viewState.emitmessage(null)
     if (this.viewRef) {
       this.viewRef.resetView();
     }
@@ -109,6 +110,7 @@ export class GeoCraftComponent implements OnInit {
     this.resetCanvas = true;
     setTimeout(() => {
       this.resetCanvas = false;
+      this.viewState.emitmessage(null);
     }, 0);
   }
 }

@@ -30,10 +30,10 @@ export class SegmentToolService implements InteractiveTool {
       Math.abs(actual - expected) <= inaccuracy,
 
     '>': (actual: number, expected: number, inaccuracy: number) =>
-      actual > expected - inaccuracy,
+      actual > expected + inaccuracy,
 
     '<': (actual: number, expected: number, inaccuracy: number) =>
-      actual < expected + inaccuracy,
+      actual < expected - inaccuracy,
 
     '<=': (actual: number, expected: number, inaccuracy: number) =>
       actual <= expected + inaccuracy,
@@ -236,7 +236,7 @@ debugger
     if (isValid) {
       return {
         matched: true,
-        reason: `✅ Great job! The segment looks perfect.`,
+        reason: `Great job! The segment looks perfect.`,
         data: obj,
       };
     } else {
