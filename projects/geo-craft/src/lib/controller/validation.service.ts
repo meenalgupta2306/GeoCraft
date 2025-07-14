@@ -11,10 +11,10 @@ import { LlmServiceService } from '../view/services/llm-service.service';
 })
 export class ValidationService {
   private dependencyMessages: Record<string, (step: any) => string> = {
-    segment: () => 'Please draw the required segment first.',
+    segment: () => 'Base Segment Missing',
     protractor: (step) => {
       const dependentStep = this.getGeoElementByStepId(step.depends[0]);
-      return `Please place the protractor on the base segment ${dependentStep.start.label}${dependentStep.end.label}.`;
+      return `ProtractorNotUsed`;
     },
     point: () => 'Please plot the required point first.',
   };
@@ -151,10 +151,13 @@ export class ValidationService {
         this.configForHint['dependentStep'] =
           this.config.steps[unmetDependencyStep];
         this.configForHint['validated'] = depsMet;
-        this.configForHint['reason'] =
-          this.dependencyMessages[unmetDependencyStep.tool](
+        this.configForHint['errorType'].push(this.dependencyMessages[unmetDependencyStep.tool](
             unmetDependencyStep
-          ) || null;
+          ) || null)
+        // this.configForHint['reason'] =
+        //   this.dependencyMessages[unmetDependencyStep.tool](
+        //     unmetDependencyStep
+        //   ) || null;
       } else {
         debugger
         const result = toolService.validate(

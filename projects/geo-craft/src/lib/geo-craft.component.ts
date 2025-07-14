@@ -79,7 +79,7 @@ export class GeoCraftComponent implements OnInit {
               this.questions[this.currentQuestion],
               config[this.currentQuestion].steps
             )
-          : hintGenerationPrompt + this.questions[this.currentQuestion];
+          : hintGenerationPrompt + '\nQuestion:\n'+ this.questions[this.currentQuestion];
 
       await this.llm.setSystemPrompt(item, prompt);
     }

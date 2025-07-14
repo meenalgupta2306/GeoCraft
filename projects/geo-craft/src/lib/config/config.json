@@ -70,7 +70,6 @@
         {
           "id": 3,
           "tool": "segment",
-          "length": 2,
           "data": {
             "start": { "label": "A" },
             "end": { "label": "C" },

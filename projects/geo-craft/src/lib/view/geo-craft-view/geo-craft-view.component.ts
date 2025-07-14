@@ -203,22 +203,22 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
       start: number,
       end: number,
       increment: number,
-      strokeStyle: string,
+      strokeColor: string,
       lineWidth: number
     ) => {
-      renderer.setStrokeStyle(strokeStyle);
+      // renderer.setStrokeStyle(strokeStyle);
       renderer.setLineWidth(lineWidth);
 
       // Vertical lines
       for (let x = start; x <= end; x += increment) {
         const sx = this.toScreenX(x);
-        renderer.drawLine(sx, this.toScreenY(minY), sx, this.toScreenY(maxY));
+        renderer.drawLine(sx, this.toScreenY(minY), sx, this.toScreenY(maxY), strokeColor);
       }
 
       // Horizontal lines
       for (let y = start; y <= end; y += increment) {
         const sy = this.toScreenY(y);
-        renderer.drawLine(this.toScreenX(minX), sy, this.toScreenX(maxX), sy);
+        renderer.drawLine(this.toScreenX(minX), sy, this.toScreenX(maxX), sy, strokeColor);
       }
     };
 
@@ -234,25 +234,27 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
     };
 
     // 1️⃣ Subgrid
-    drawGridLines(subBounds.start, subBounds.end, subStep, '#eeeeee', 0.5);
+    drawGridLines(subBounds.start, subBounds.end, subStep, 'rgba(40, 40, 40, 0.1)', 0.5);
 
     // 2️⃣ Main grid
-    drawGridLines(mainBounds.start, mainBounds.end, step, '#dddddd', 1.2);
+    drawGridLines(mainBounds.start, mainBounds.end, step, 'rgba(0, 0, 0, 0.2)', 1.2);
 
     // 3️⃣ Axes
-    renderer.setStrokeStyle('#000');
-    renderer.setLineWidth(1.5);
+    // renderer.setStrokeStyle('rgba(255, 7, 7, 0.1)');
+    // renderer.setLineWidth(1.5);
     renderer.drawLine(
       this.toScreenX(0),
       this.toScreenY(minY),
       this.toScreenX(0),
-      this.toScreenY(maxY)
+      this.toScreenY(maxY),
+     'rgba(0, 0, 0, 0.60)'
     ); // Y axis
     renderer.drawLine(
       this.toScreenX(minX),
       this.toScreenY(0),
       this.toScreenX(maxX),
-      this.toScreenY(0)
+      this.toScreenY(0),
+      'rgba(0, 0, 0, 0.60)'
     ); // X axis
 
     // 4️⃣ Labels
