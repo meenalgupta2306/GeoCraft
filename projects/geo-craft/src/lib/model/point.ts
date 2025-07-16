@@ -29,4 +29,8 @@ export class Point {
         }
         return this.x === object.x && this.y === object.y;
     }
+
+    addLabel(label: string){
+        this.label = label;
+    }
 }

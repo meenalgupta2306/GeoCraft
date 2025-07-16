@@ -87,6 +87,7 @@ export class ProtractorToolService implements PassiveTool {
       }
 
       if (vertexPoint && otherPoint) {
+        geoElement.addVertex(vertexPoint.label);
         const p1 = protractorCenter;
         const p2 = geoElement.protractorAxis.end;
         const p3 = otherPoint;

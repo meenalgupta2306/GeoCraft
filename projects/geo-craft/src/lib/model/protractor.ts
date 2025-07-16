@@ -18,4 +18,8 @@ export class Protractor {
   public getProtractorAxis() {
     return this.protractorAxis;
   }
+
+  addVertex(vertex: string){
+    this.center.addLabel(vertex);
+  }
 }
