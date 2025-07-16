@@ -113,8 +113,8 @@ export class SegmentToolService implements InteractiveTool {
 
     [
       this.previewStartPoint,
-      new DrawSegment(this.segment),
       this.previewEndPoint,
+      new DrawSegment(this.segment),
     ].forEach((item) => {
       this.viewStateService.addDrawable(item);
     });

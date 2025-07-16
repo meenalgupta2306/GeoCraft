@@ -4,14 +4,9 @@
 <div class="geo-craft-container">
   <canvas #canvasContainer class="canvas-area"></canvas>
 
-  <lib-compass-renderer
-    class="compass"
-    *ngIf="toolManager.isToolRendered('compass')"
-  ></lib-compass-renderer>
 
-  <lib-protractor-renderer
-    class="compass"
-    *ngIf="toolManager.isToolRendered('protractor')"
-    (notify)="showNotification($event)"
-  ></lib-protractor-renderer>
+  <lib-compass-renderer class="compass" *ngIf="toolManager.isToolRendered('compass')"></lib-compass-renderer>
+
+  <lib-protractor-renderer class="compass" *ngIf="toolManager.isToolRendered('protractor')"
+    (notify)="showNotification($event)"></lib-protractor-renderer>
 </div>

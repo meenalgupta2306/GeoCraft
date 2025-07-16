@@ -122,6 +122,10 @@ export class PointToolService implements InteractiveTool {
     return label;
   }
 
+  undoLebel(){
+    this.pointCount--;
+  }
+
   reset() {
     this.point = null;
     this.previewPoint = null;

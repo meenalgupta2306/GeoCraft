@@ -1,13 +1,13 @@
-<link
-  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
-  rel="stylesheet"
-/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 <div class="geo-craft-wrapper">
   <div class="question-bar">
     <h5>
       <b>{{ questions[currentQuestion] }}</b>
     </h5>
     <div class="question-controls">
+      <button (click)="undo()" class="icon-btn" title="Undo">
+        🔄
+      </button>
       <button (click)="clearCanvas()" class="icon-btn" title="Clear Canvas">
         🗑️
       </button>
@@ -19,16 +19,11 @@
   </div>
   <div class="main-body">
     <div [ngClass]="{ sidebar: true, collapsed: !openToolBar }">
-      <lib-tool-bar
-        *ngIf="openToolBar"
-        [resetCanvas]="resetCanvas"
-      ></lib-tool-bar>
+      <lib-tool-bar *ngIf="openToolBar" [resetCanvas]="resetCanvas"></lib-tool-bar>
     </div>
     <div class="canvas-area">
-      <lib-geo-craft-view
-        [currentQuestionCount]="currentQuestion"
-        [resetCanvas]="resetCanvas"
-      ></lib-geo-craft-view>
+      <lib-geo-craft-view #geoCraftView [currentQuestionCount]="currentQuestion"
+        [resetCanvas]="resetCanvas"></lib-geo-craft-view>
     </div>
   </div>
 </div>
