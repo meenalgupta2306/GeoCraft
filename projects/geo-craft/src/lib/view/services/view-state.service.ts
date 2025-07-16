@@ -41,17 +41,65 @@ export class ViewStateService {
   // ✅ Drawables collection
   private drawables: any[] = [];
   private previewDrawables: any[] = [];
+  private historyStack: any[][] = [];
+  private futureStack: any[][] = []; // optional, for Redo functionality
 
   errorMessage: Subject<any> = new Subject<String | null>();
+  lastElement: Subject<any> = new Subject<any | null>();
 
   constructor() {}
 
   addDrawable(drawable: any) {
+    this.saveHistory();
     this.drawables.push(drawable);
   }
 
   getDrawables() {
     return this.drawables;
+  }
+
+  saveHistory() {
+    const snapshot = this.drawables.map((d) => ({ ...d })); // shallow clone
+    this.historyStack.push(snapshot);
+    this.futureStack = []; // clear future on new action
+  }
+
+  // undo() {
+  //   // if (this.historyStack.length === 0) return;
+  //   // const lastState = this.historyStack.pop()!;
+  //   // this.futureStack.push([...this.drawables]); // for redo (optional)
+  //   // this.drawables = lastState;
+  //   if (this.drawables.length === 0) return null;
+  //   const removed = this.drawables.pop();
+
+  //   // this.coordinateSystemChanged.next(); // or force re-render
+  //   return removed;
+  // }
+
+  undo(): any | null {
+    if (this.drawables.length === 0) return null;
+    const removed = this.drawables.pop();
+
+    if ('segment' in removed) {
+      const removedPoints = [];
+
+      for (let i = 0; i < 2 && this.drawables.length > 0; i++) {
+        const pointCandidate = this.drawables[this.drawables.length - 1];
+        if ('point' in pointCandidate) {
+          removedPoints.push(this.drawables.pop());
+        }
+      }
+      return [removed, ...removedPoints];
+    }
+    return removed;
+  }
+
+  redo() {
+    if (this.futureStack.length === 0) return;
+
+    this.historyStack.push([...this.drawables]);
+    this.drawables = this.futureStack.pop()!;
+    this.coordinateSystemChanged.next();
   }
 
   clear() {
@@ -129,5 +177,10 @@ export class ViewStateService {
 
   emitmessage(msg: string | null) {
     this.errorMessage.next(msg);
+  }
+
+  validateLastElement(type: string) {
+    const lastElement = this.getDrawables();
+    this.lastElement.next({lastElement: lastElement[lastElement.length - 1], type: type });
   }
 }

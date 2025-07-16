@@ -106,6 +106,12 @@ export class GeoCraftComponent implements OnInit {
     await this.llmSetup();
   }
 
+  undo() {
+    if (this.viewRef) {
+      this.viewRef.undo();
+    }
+  }
+
   clearCanvas() {
     this.resetCanvas = true;
     setTimeout(() => {

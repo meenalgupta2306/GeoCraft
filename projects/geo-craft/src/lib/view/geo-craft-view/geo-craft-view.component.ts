@@ -9,7 +9,8 @@ import {
   Input,
   ChangeDetectorRef,
 } from '@angular/core';
-import { CanvasRendererService } from '../services/canvas-renderer.service';
+declare let fabric: any;
+import { FabricRendererService } from '../services/fabric-renderer.service';
 import { ToolManagerService } from '../../controller/tool-manager.service';
 import { ViewStateService } from '../services/view-state.service';
 import { ValidationService } from '../../controller/validation.service';
@@ -26,12 +27,13 @@ import { GeoRef } from '../../controller/interfaces/geoRef';
   templateUrl: './geo-craft-view.component.html',
   styleUrls: ['./geo-craft-view.component.scss'],
 })
-export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
+export class GeoCraftViewComponent implements AfterViewInit, OnInit {
   @ViewChild('canvasContainer', { static: true })
   canvasRef!: ElementRef<HTMLCanvasElement>;
   private canvas!: HTMLCanvasElement;
 
-  private ctx!: CanvasRenderingContext2D;
+  fabricCanvas = new fabric.Canvas();
+  private gridDrawn = false;
 
   notificationMessage: string | null = null;
 
@@ -40,7 +42,7 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
 
   constructor(
     public toolManager: ToolManagerService,
-    private renderer: CanvasRendererService,
+    private renderer: FabricRendererService,
     public viewState: ViewStateService,
     private validationService: ValidationService,
     private pointToolService: PointToolService,
@@ -60,7 +62,7 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
   }
 
   resetView() {
-    this.renderer.clear(this.canvas.width, this.canvas.height);
+    this.renderer.clear();
     this.viewState.clear();
     this.viewState.clearPreviewDrawables();
     this.pointToolService.reset();
@@ -77,20 +79,22 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
     this.notificationMessage = message;
     this.cdr.detectChanges();
     setTimeout(() => {
-      this.notificationMessage = null; // <-- use null instead of ''
-      this.cdr.detectChanges(); // make sure it re-evaluates *ngIf
+      this.notificationMessage = null;
+      this.cdr.detectChanges();
     }, 2000);
   }
 
   ngAfterViewInit() {
-    this.ctx = this.canvasRef.nativeElement.getContext('2d')!;
+    this.fabricCanvas = new fabric.Canvas(this.canvasRef.nativeElement, {
+      selection: false,
+      preserveObjectStacking: true,
+    });
+
+    this.renderer.setCanvas(this.fabricCanvas);
     this.resizeCanvas();
   }
   ngOnInit(): void {
     this.canvas = this.canvasRef.nativeElement;
-    this.ctx = this.canvas.getContext('2d')!;
-    this.renderer.setContext(this.ctx);
-
     // Resize this.canvas to match parent size
     this.canvas.width = this.canvas.offsetWidth;
     this.canvas.height = this.canvas.offsetHeight;
@@ -103,24 +107,28 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
       this.canvas.height
     );
     this.validationService.loadConfig(config[this.currentQuestionCount]);
+    this.viewState.lastElement.subscribe((lastElement: any) => {
+      lastElement.lastElement.updateStroke(
+        this.renderer,
+        this,
+        lastElement.type
+      );
+    });
   }
 
   @HostListener('window:resize')
   resizeCanvas() {
-    // 1️⃣ Match the this.canvas size to its displayed size
     const rect = this.canvas.getBoundingClientRect();
     this.canvas.width = rect.width;
     this.canvas.height = rect.height;
 
-    // 2️⃣ Update coordinate system and notify all components
     this.viewState.updateCoordinateSystem(
-      this.canvas.width / 2,
-      this.canvas.height / 2,
-      this.canvas.width,
-      this.canvas.height
+      rect.width / 2,
+      rect.height / 2,
+      rect.width,
+      rect.height
     );
 
-    // 3️⃣ Re-render everything at new size
     this.render();
   }
 
@@ -165,64 +173,72 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
   @HostListener('pointerup', ['$event'])
   onPointerUp(event: PointerEvent) {
     const { wx, wy } = this.getWorldCoordinates(event);
-    //Check if point is in any blocked tool (like protractor)
-
     this.toolManager.handlePointerUp(this, wx, wy);
-
-    // const activeToolName = this.toolManager.activeToolName;
-    // const isRendered = activeToolName
-    //   ? this.toolManager.isToolRendered(activeToolName)
-    //   : false;
-
-    // if (!isRendered) {
-    //   this.validationService.startValidation();
-    // }
   }
 
-  render() {
-    this.renderer.clear(this.canvas.width, this.canvas.height);
-    //Draw grid if enabled
-    this.drawGrid(this.renderer, this.viewState.showGrid);
+  render(fullRender: boolean = false) {
+    this.drawGrid(this.renderer, true);
+    this.gridDrawn = true;
     this.viewState.getDrawables().forEach((d) => {
       d.render(this.renderer, this);
     });
-    // Draw preview (temporary) items
-    this.viewState
-      .getPreviewDrawables()
-      .forEach((d) => d.render(this.renderer, this));
+
+    this.viewState.getPreviewDrawables().forEach((d) => {
+      d.render(this.renderer, this);
+    });
   }
 
-  drawGrid(renderer: CanvasRendererService, visible: boolean) {
+  undo() {
+    const removedElements = this.viewState.undo();
+
+    if (!removedElements) return;
+    const toRemove = Array.isArray(removedElements)
+      ? removedElements
+      : [removedElements];
+    toRemove.forEach((element) => {
+      if (element.point) this.pointToolService.undoLebel();
+      element.dispose(this.renderer);
+    });
+  }
+
+  drawGrid(renderer: FabricRendererService, visible: boolean) {
     if (!visible) return;
     const { minX, maxX, minY, maxY } = this.viewState.getVisibleWorldRange();
     const step = this.viewState.gridStep;
     const subStep = step / 5;
 
-    // Helper function to draw grid lines
-    const drawGridLines = (
+    const drawLines = (
       start: number,
       end: number,
       increment: number,
-      strokeStyle: string,
-      lineWidth: number
+      color: string,
+      width: number
     ) => {
-      renderer.setStrokeStyle(strokeStyle);
-      renderer.setLineWidth(lineWidth);
-
-      // Vertical lines
       for (let x = start; x <= end; x += increment) {
         const sx = this.toScreenX(x);
-        renderer.drawLine(sx, this.toScreenY(minY), sx, this.toScreenY(maxY));
+        renderer.drawLine(
+          sx,
+          this.toScreenY(minY),
+          sx,
+          this.toScreenY(maxY),
+          color,
+          width
+        );
       }
 
-      // Horizontal lines
       for (let y = start; y <= end; y += increment) {
         const sy = this.toScreenY(y);
-        renderer.drawLine(this.toScreenX(minX), sy, this.toScreenX(maxX), sy);
+        renderer.drawLine(
+          this.toScreenX(minX),
+          sy,
+          this.toScreenX(maxX),
+          sy,
+          color,
+          width
+        );
       }
     };
 
-    // Calculate boundaries once
     const subBounds = {
       start: Math.floor(Math.min(minX, minY) / subStep) * subStep,
       end: Math.ceil(Math.max(maxX, maxY) / subStep) * subStep,
@@ -233,33 +249,28 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
       end: Math.ceil(Math.max(maxX, maxY) / step) * step,
     };
 
-    // 1️⃣ Subgrid
-    drawGridLines(subBounds.start, subBounds.end, subStep, '#eeeeee', 0.5);
+    drawLines(subBounds.start, subBounds.end, subStep, '#eeeeee', 0.5);
+    drawLines(mainBounds.start, mainBounds.end, step, '#dddddd', 1.2);
 
-    // 2️⃣ Main grid
-    drawGridLines(mainBounds.start, mainBounds.end, step, '#dddddd', 1.2);
-
-    // 3️⃣ Axes
-    renderer.setStrokeStyle('#000');
-    renderer.setLineWidth(1.5);
+    // Axes
     renderer.drawLine(
       this.toScreenX(0),
       this.toScreenY(minY),
       this.toScreenX(0),
-      this.toScreenY(maxY)
-    ); // Y axis
+      this.toScreenY(maxY),
+      '#000',
+      1.5
+    );
     renderer.drawLine(
       this.toScreenX(minX),
       this.toScreenY(0),
       this.toScreenX(maxX),
-      this.toScreenY(0)
-    ); // X axis
+      this.toScreenY(0),
+      '#000',
+      1.5
+    );
 
-    // 4️⃣ Labels
-    renderer.setFillStyle('#000');
-    renderer.setFont('12px sans-serif');
-
-    // X-axis labels (skip y=0 to avoid overlap with origin)
+    // Labels
     for (let x = mainBounds.start; x <= mainBounds.end; x += step) {
       if (x >= minX && x <= maxX && Math.abs(x) > 1e-6) {
         renderer.drawText(
@@ -270,7 +281,6 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
       }
     }
 
-    // Y-axis labels (skip x=0 to avoid overlap with origin)
     for (let y = mainBounds.start; y <= mainBounds.end; y += step) {
       if (y >= minY && y <= maxY && Math.abs(y) > 1e-6) {
         renderer.drawText(
@@ -281,7 +291,6 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
       }
     }
 
-    // Origin label
     renderer.drawText('0', this.toScreenX(0) + 2, this.toScreenY(0) + 12);
   }
 
