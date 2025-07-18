@@ -86,15 +86,15 @@ export class DrawPoint {
 
   dispose(renderer: FabricRendererService) {
     if (this.pointCircle) {
-      renderer.canvas.remove(this.pointCircle);
+      renderer.removeObject(this.pointCircle);
       this.pointCircle = undefined;
     }
     if (this.glowCircle) {
-      renderer.canvas.remove(this.glowCircle);
+      renderer.removeObject(this.glowCircle);
       this.glowCircle = undefined;
     }
     if (this.labelText) {
-      renderer.canvas.remove(this.labelText);
+      renderer.removeObject(this.labelText);
       this.labelText = undefined;
     }
   }

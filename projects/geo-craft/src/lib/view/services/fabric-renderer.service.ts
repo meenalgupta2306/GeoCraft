@@ -71,6 +71,12 @@ export class FabricRendererService {
     return label;
   }
 
+  removeObject(obj: any) {
+    if (obj && this.canvas.contains(obj)) {
+      this.canvas.remove(obj);
+    }
+  }
+
   setStrokeStyle(color: string) {
     // Fabric sets stroke on a per-object basis
     console.warn(
