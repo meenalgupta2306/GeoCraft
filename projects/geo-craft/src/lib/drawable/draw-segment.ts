@@ -20,13 +20,21 @@ export class DrawSegment {
     const x2 = view.toScreenX(end.x);
     const y2 = view.toScreenY(end.y);
 
-    const strokeColor = this.isPreview ? '#888' : '#000';
-    const fillColor = this.isPreview ? '#aaa' : '#000';
-    const lineWidth = this.isPreview ? 1 : 2;
+    const strokeColor = '#000';
+    const lineWidth = 2;
 
     if (!this.lineObj) {
-      this.lineObj = renderer.drawLine(x1, y1, x2, y2, strokeColor, lineWidth);
-      this._fabricObject = this.lineObj;
+      if (!this.isPreview) {
+        this.lineObj = renderer.drawLine(
+          x1,
+          y1,
+          x2,
+          y2,
+          strokeColor,
+          lineWidth
+        );
+        this._fabricObject = this.lineObj;
+      }
     } else {
       this.lineObj.set({
         x1,
@@ -43,7 +51,7 @@ export class DrawSegment {
 
   updateStroke(renderer: FabricRendererService, view: GeoRef, type: string) {
     if (this.lineObj) {
-      this.lineObj.set({ stroke: type });
+      this.lineObj.set({ stroke: type, fill: type });
       this.lineObj.setCoords();
       renderer.canvas.requestRenderAll();
     }
@@ -53,9 +61,8 @@ export class DrawSegment {
     console.log('Disposing segment...');
 
     if (this.lineObj) {
-      renderer.canvas.remove(this.lineObj);
-      this.lineObj = undefined;
+      renderer.removeObject(this.lineObj);
+      renderer.canvas.requestRenderAll();
     }
-    renderer.canvas.requestRenderAll();
   }
 }
