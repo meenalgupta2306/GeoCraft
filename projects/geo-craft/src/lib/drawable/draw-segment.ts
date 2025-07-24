@@ -41,8 +41,6 @@ export class DrawSegment {
         y1,
         x2,
         y2,
-        stroke: strokeColor,
-        strokeWidth: lineWidth,
       });
       this.lineObj.setCoords();
       this._fabricObject = this.lineObj;
