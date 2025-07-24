@@ -199,6 +199,8 @@ export class GeoCraftViewComponent implements AfterViewInit, OnInit {
       if (element.point) this.pointToolService.undoLebel();
       element.dispose(this.renderer);
     });
+    this.segmentToolService.reset();
+    this.viewState.clearPreviewDrawables();
   }
 
   drawGrid(renderer: FabricRendererService, visible: boolean) {
@@ -220,12 +222,24 @@ export class GeoCraftViewComponent implements AfterViewInit, OnInit {
       // Vertical lines
       for (let x = start; x <= end; x += increment) {
         const sx = this.toScreenX(x);
-        renderer.drawLine(sx, this.toScreenY(minY), sx, this.toScreenY(maxY), strokeColor);
+        renderer.drawLine(
+          sx,
+          this.toScreenY(minY),
+          sx,
+          this.toScreenY(maxY),
+          strokeColor
+        );
       }
 
       for (let y = start; y <= end; y += increment) {
         const sy = this.toScreenY(y);
-        renderer.drawLine(this.toScreenX(minX), sy, this.toScreenX(maxX), sy, strokeColor);
+        renderer.drawLine(
+          this.toScreenX(minX),
+          sy,
+          this.toScreenX(maxX),
+          sy,
+          strokeColor
+        );
       }
     };
 
@@ -239,8 +253,20 @@ export class GeoCraftViewComponent implements AfterViewInit, OnInit {
       end: Math.ceil(Math.max(maxX, maxY) / step) * step,
     };
 
-    drawLines(subBounds.start, subBounds.end, subStep, 'rgba(40, 40, 40, 0.1)', 0.5);
-    drawLines(mainBounds.start, mainBounds.end, step, 'rgba(0, 0, 0, 0.2)', 1.2);
+    drawLines(
+      subBounds.start,
+      subBounds.end,
+      subStep,
+      'rgba(40, 40, 40, 0.1)',
+      0.5
+    );
+    drawLines(
+      mainBounds.start,
+      mainBounds.end,
+      step,
+      'rgba(0, 0, 0, 0.2)',
+      1.2
+    );
 
     // Axes
     renderer.drawLine(
