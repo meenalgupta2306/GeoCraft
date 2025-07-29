@@ -20,6 +20,23 @@ export class StepReplayService {
     private construction: ConstructionService,
     private viewState: ViewStateService
   ) {}
+  replayAll(view: GeoCraftViewComponent): void {
+    this.viewState.clear();
+
+    for (const geo of this.construction.getGeoElements()) {
+      if (geo instanceof Point) {
+        this.viewState.addDrawable(new DrawPoint(geo));
+      }
+      if (geo instanceof LineSegment) {
+        this.viewState.addDrawable(new DrawPoint(geo.start));
+        this.viewState.addDrawable(new DrawSegment(geo));
+        this.viewState.addDrawable(new DrawPoint(geo.end));
+      }
+     
+    }
+
+    view.render();
+  }
 
   async playStep(step: any, view: GeoCraftViewComponent): Promise<void> {
     if (step.tool === 'point') {
@@ -38,7 +55,7 @@ export class StepReplayService {
       let endPoint = this.getOrAssumePoint(end);
 
       // If this segment depends on an angle (e.g. from protractor)
-      if (step.depends?.length && step.length && !end.coordinate) {
+      if (step.depends?.length && step.data?.angle && !end.coordinate) {
         const protractorStepId = step.depends.find((id: number) =>
           this.protractorMap.has(id)
         );
@@ -48,7 +65,7 @@ export class StepReplayService {
           const base = startPoint.label === vertex ? from : startPoint;
           const reference = startPoint.label === vertex ? this.getOtherPointOfSegment(vertex) : from;
 
-          endPoint = this.constructPointAtAngle(base, reference, angle, step.length, end.label);
+          endPoint = this.constructPointAtAngle(base, reference, step.data?.angle, step.length, end.label);
           this.labelMap.set(end.label, endPoint);
         }
       }
@@ -107,9 +124,10 @@ export class StepReplayService {
   from: Point,
   base: Point,
   angleDeg: number,
-  length: number,
+  length: number = 2,
   label: string
 ): Point {
+  debugger
   const dx = base.x - from.x;
   const dy = base.y - from.y;
 

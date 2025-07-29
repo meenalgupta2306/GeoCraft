@@ -20,8 +20,15 @@ export class ConstructionService {
     return this.geoElements;
   }
 
+  getGeoElementByIndex(index: number){
+    return this.geoElements[index];
+  }
   updateGeoElement(index: number, geo: any) {
     this.geoElements[index] = geo;
+  }
+
+  getLength(){
+    return this.geoElements.length -1;
   }
 
   clear() {

@@ -130,4 +130,12 @@ export class ViewStateService {
   emitmessage(msg: string | null) {
     this.errorMessage.next(msg);
   }
+  getVisibleWorldCenter() {
+  const { minX, maxX, minY, maxY } = this.getVisibleWorldRange();
+  return {
+    centerX: (minX + maxX) / 2,
+    centerY: (minY + maxY) / 2,
+  };
+}
+
 }

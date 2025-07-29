@@ -20,6 +20,8 @@ import { SegmentToolService } from '../../controller/tools/segment-tool.service'
 import { ConstructionService } from '../../controller/construction.service';
 import { EventLogService } from '../../controller/event-log.service';
 import { GeoRef } from '../../controller/interfaces/geoRef';
+import { StepReplayService } from '../../controller/step-replay.service';
+import { ConfigMapperService } from '../../controller/config-mapper.service';
 
 @Component({
   selector: 'lib-geo-craft-view',
@@ -47,15 +49,21 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
     private protractorToolService: ProtractorToolService,
     private segmentToolService: SegmentToolService,
     private constructionService: ConstructionService,
+    private stepReplay: StepReplayService,
     private eventLogService: EventLogService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private configMapper: ConfigMapperService
   ) {}
   ngOnChanges(changes: SimpleChanges) {
     if (
       changes['currentQuestionCount']?.currentValue !== undefined ||
       changes['resetCanvas']?.currentValue === true
     ) {
-      this.resetView();
+      // this.resetView();
+      debugger
+      // this.stepReplay.playAll(config[this.currentQuestionCount].steps, this);
+      this.configMapper.placeFigureCentered(config[this.currentQuestionCount].steps);
+      this.stepReplay.replayAll(this);
     }
   }
 
@@ -103,6 +111,11 @@ export class GeoCraftViewComponent implements AfterViewInit, GeoRef {
       this.canvas.height
     );
     this.validationService.loadConfig(config[this.currentQuestionCount]);
+    // this.stepReplay.playAll(config[this.currentQuestionCount].steps, this);
+    this.configMapper.placeFigureCentered(config[this.currentQuestionCount].steps)
+    console.log(this.constructionService.getGeoElements());
+    this.stepReplay.replayAll(this);
+
   }
 
   @HostListener('window:resize')

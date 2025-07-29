@@ -148,6 +148,7 @@
             "start": { "label": "A" },
             "end": { "label": "C" },
             "angle": 90,
+            "length": 2,
             "operator": ">"
           },
           "depends": [2]
