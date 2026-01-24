@@ -99,8 +99,12 @@ export class SegmentToolService implements InteractiveTool {
 
   handlePointerUp(view: GeoRef): void {
     // If only one point tapped, do nothing
-    if (!this.segment || !this.previewEndPoint || !this.previewStartPoint)
+    if (!this.segment || !this.previewEndPoint || !this.previewStartPoint) {
+      if (this.previewStartPoint) {
+        this.viewStateService.addDrawable(this.previewStartPoint);
+      }
       return;
+    }
 
     this.constructionService.addGeoElement(this.segment);
 
@@ -111,11 +115,7 @@ export class SegmentToolService implements InteractiveTool {
     // Clear preview and add final drawables
     this.viewStateService.clearPreviewDrawables();
 
-    [
-      this.previewStartPoint,
-      new DrawSegment(this.segment),
-      this.previewEndPoint,
-    ].forEach((item) => {
+    [this.previewEndPoint, new DrawSegment(this.segment)].forEach((item) => {
       this.viewStateService.addDrawable(item);
     });
 
@@ -208,8 +208,7 @@ export class SegmentToolService implements InteractiveTool {
       }
       const angle = data.angle;
       const operator = data.operator || '=';
-console.log("expected angle", angle)
-debugger
+      console.log('expected angle', angle);
       const result = this.computeAngleBetweenSegments(
         refSegment.baseSegment,
         geoElement,

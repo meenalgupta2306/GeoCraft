@@ -96,7 +96,7 @@ export class GeoCraftComponent implements OnInit {
 
     this.validationService.loadConfig(config[this.currentQuestion]);
 
-    this.viewState.emitmessage(null)
+    this.viewState.emitmessage(null);
     if (this.viewRef) {
       this.viewRef.resetView();
     }
@@ -104,6 +104,15 @@ export class GeoCraftComponent implements OnInit {
       this.toolBarComponent.clearSelectedTools();
     }
     await this.llmSetup();
+  }
+
+  undo() {
+    if (this.viewRef) {
+      this.viewRef.undo();
+      setTimeout(() => {
+        this.viewState.emitmessage(null);
+      }, 0);
+    }
   }
 
   clearCanvas() {

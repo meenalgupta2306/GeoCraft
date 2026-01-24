@@ -2,6 +2,7 @@ import { Point } from './point';
 
 
 export class LineSegment {
+    _fabricObject: any;
   readonly tool = "segment";
     constructor(
     public start: Point,
